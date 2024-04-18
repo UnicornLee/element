@@ -311,7 +311,12 @@
             {
               "path": "/drawer",
               "title": "Drawer 抽屉"
-            }
+            },
+             {
+               "path": "/note-adder",
+               "title": "NoteAdder  添加笔记",
+               "new": true
+             }
           ]
         }
       ]
