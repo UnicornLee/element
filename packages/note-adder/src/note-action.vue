@@ -2,7 +2,16 @@
   <div>
     <div class="note-action" @click="actionClick">
       <div class="note-action-icon-title">
-        <div :class="['el-icon-' + iconName]"></div>
+        <div v-if="type === 'background'">
+          <span class="note-action-background" :style="{backgroundColor: lastUsed.val}">A</span>
+        </div>
+        <div v-else-if="type === 'wave'">
+          <span class="note-action-wave" :style="{textDecorationColor: lastUsed.val}">A</span>
+        </div>
+        <div v-else-if="type === 'straight'">
+          <span class="note-action-straight" :style="{textDecorationColor: lastUsed.val}">A</span>
+        </div>
+        <div v-else :class="['el-icon-' + iconName]" style="font-size: 18px;"></div>
         <div>{{ title }}</div>
       </div>
       <div v-if="isDropdown" class="el-icon-arrow-down note-action-dropdown">
@@ -123,6 +132,7 @@ export default {
 <style scoped>
 .note-action {
   display: flex;
+  width: 70px;
   align-items: center;
   justify-content: center;
   height: 100%;
@@ -136,5 +146,17 @@ export default {
 
 .note-action-dropdown {
   margin-left: 5px;
+}
+.note-action-background {
+  font-size: 18px;
+}
+.note-action-straight {
+  font-size: 18px;
+  text-decoration: underline;
+}
+.note-action-wave {
+  font-size: 18px;
+  text-decoration: underline;
+  text-decoration-style: wavy;
 }
 </style>

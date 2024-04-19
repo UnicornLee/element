@@ -2,14 +2,14 @@
   <el-popover
       ref="noteActionPopover"
       placement="top"
-      width="400"
+      offset="10"
       trigger="manual"
       v-model="visible"
       visible-arrow
       class="note-action-popover"
   >
     <div class="note-actions">
-      <note-action title="复制" type="copy" icon-name="house" :shortcut-key="copyTextShortcutKey"
+      <note-action title="复制" type="copy" icon-name="document-copy" :shortcut-key="copyTextShortcutKey"
                    :click-handler="copyText" />
       <note-action title="背景" type="background" icon-name="house" :shortcut-key="backgroundShortcutKey"
                    :colors="backgroundColors" :last-used="backgroundLastUsed" is-dropdown
@@ -20,11 +20,11 @@
       <note-action title="直线" type="straight" icon-name="house" :shortcut-key="straightLineShortcutKey"
                    :colors="straightLineColors" :last-used="straightLineLastUsed" is-dropdown
                    :click-handler="underlineText" @action-color-selected="selectColor" @action-clicked="handleActionClicked" />
-      <note-action title="写想法" type="idea" icon-name="house" :shortcut-key="writeIdeaShortcutKey"
+      <note-action title="写想法" type="idea" icon-name="edit" :shortcut-key="writeIdeaShortcutKey"
                    :click-handler="writeIdea" />
-      <note-action title="知易" type="ai" icon-name="house" :shortcut-key="askAIShortcutKey"
+      <note-action title="知易" type="ai" icon-name="magic-stick" :shortcut-key="askAIShortcutKey"
                    :click-handler="askAI" />
-      <note-action title="清除" type="clear" icon-name="house" :shortcut-key="clearNoteShortcutKey"
+      <note-action title="清除" type="clear" icon-name="delete" :shortcut-key="clearNoteShortcutKey"
                    :click-handler="clearNote" />
     </div>
   </el-popover>
@@ -191,10 +191,10 @@ export default {
 
 <style scoped>
 .note-action-popover {
+  position: relative;
   user-select: none;
 }
 .note-actions {
   display: flex;
-  justify-content: space-between;
 }
 </style>
