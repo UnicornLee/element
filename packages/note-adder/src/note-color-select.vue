@@ -1,15 +1,15 @@
 <template>
   <div class="note-colors">
-    <div>最近使用</div>
-    <div>
-      <div :style="{backgroundColor: lastUsed.val}">A</div>
-      <div>{{ lastUsed.name }}</div>
-      <div>{{ shortcutKey }}</div>
+    <div class="group-title">最近使用</div>
+    <div class="color-item" @click="handleColor(lastUsed)">
+      <span :style="{color: lastUsed.val}">A</span>
+      <span>{{ lastUsed.name }}</span>
+      <span class="shortcut-key">{{ shortcutKey }}</span>
     </div>
-    <div>颜色</div>
-    <div v-for="(item, index) in colors" :key="index" @click="handleColor(item.val)">
-      <div :style="{backgroundColor: item.val}">A</div>
-      <div>{{ item.name }}</div>
+    <div class="group-title">颜色</div>
+    <div class="color-item" v-for="(item, index) in colors" :key="index" @click="handleColor(item)">
+      <span :style="{color: item.val}">A</span>
+      <span>{{ item.name }}</span>
     </div>
   </div>
 </template>
@@ -19,46 +19,55 @@ export default {
   name: 'note-color-select',
   props: {
     lastUsed: {
-      name: '红色',
+      name: '红',
       val: 'red'
     },
     shortcutKey: {
       type: String,
       default: 'Ctrl+Shift+H'
     },
-    colors: [
-      {name: '红色', val: 'red'},
-      {name: '蓝色', val: 'blue'},
-      {name: '绿色', val: 'green'},
-      {name: '黄色', val: 'yellow'},
-      {name: '紫色', val: 'purple'},
-      {name: '粉色', val: 'pink'}
-    ],
-    handleColor: {
-      type: Function,
-      default: () => {}
+    colors: {
+      type: Array,
+      items: {
+        type: Object,
+        properties: {
+          name: {
+            type: String,
+            default: ''
+          },
+          val: {
+            type: String,
+            default: ''
+          }
+        }
+      }
     }
   },
-  data() {
-    return {
-      lastUsed: {
-        name: '红色',
-        value: 'red'
-      },
-      shortcutKey: 'Ctrl+Shift+H',
-      colors: [
-        {name: '红色', val: 'red'},
-        {name: '蓝色', val: 'blue'},
-        {name: '绿色', val: 'green'},
-        {name: '黄色', val: 'yellow'},
-        {name: '紫色', val: 'purple'},
-        {name: '粉色', val: 'pink'}
-      ]
-    };
+  methods: {
+    handleColor(color) {
+      console.log('note-color-select: color selected', JSON.stringify(color));
+      this.$emit('color-selected', color);
+    }
   }
 };
 </script>
 
 <style scoped>
-
+.group-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: #9a9898;
+}
+.shortcut-key {
+  color: #9a9898;
+}
+.color-item {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+.color-item span {
+  margin-right: 10px;
+}
 </style>

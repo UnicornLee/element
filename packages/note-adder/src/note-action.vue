@@ -11,13 +11,11 @@
     <el-popover
         ref="noteColorSelectPopover"
         placement="top"
-        width="400"
         trigger="manual"
         v-model="visible"
-        visible-arrow
-        class="note-color-select-popover"
     >
-      <note-color-select />
+      <note-color-select :lastUsed="lastUsed" :shortcut-key="shortcutKey" :colors="colors" :last-used="lastUsed"
+                         @color-selected="selectColor" />
     </el-popover>
   </div>
 </template>
@@ -44,6 +42,33 @@ export default {
       type: Boolean,
       default: false
     },
+    colors: {
+      type: Array,
+      items: {
+        type: Object,
+        properties: {
+          name: {
+            type: String,
+            default: ''
+          },
+          val: {
+            type: String,
+            default: ''
+          }
+        }
+      }
+    },
+    shortcutKey: {
+      type: String,
+      default: ''
+    },
+    lastUsed: {
+      type: Object,
+      default: () => ({
+        name: '红',
+        val: 'red'
+      })
+    },
     clickHandler: {
       type: Function,
       default: () => {}
@@ -51,27 +76,44 @@ export default {
   },
   data() {
     return {
-      visible: false,
-      colors: [
-        {name: '红色', value: 'red'},
-        {name: '蓝色', value: 'blue'},
-        {name: '绿色', value: 'green'},
-        {name: '黄色', value: 'yellow'},
-        {name: '紫色', value: 'purple'},
-        {name: '粉色', value: 'pink'}
-      ]
+      visible: false
     };
   },
   components: {
     NoteColorSelect
+  },
+  mounted() {
+    document.addEventListener('mousedown', this.handleClick);
+  },
+  beforeDestroy() {
+    document.removeEventListener('mousedown', this.handleClick);
   },
   methods: {
     actionClick() {
       if (this.isDropdown) {
         console.log('isDropdown');
         this.visible = true;
+        const colorVisible = this.visible;
+        this.$emit('action-clicked', colorVisible);
       } else {
         this.clickHandler();
+      }
+    },
+    selectColor(color) {
+      console.log('note-action: selectColor', JSON.stringify(color));
+      this.visible = false;
+      const type = this.type;
+      this.$emit('action-color-selected', {type, color});
+    },
+    handleClick(event) {
+      if (this.visible) {
+        // 判断点击事件是否发生在Popover外部
+        const popoverEl = this.$refs.noteColorSelectPopover.$el;
+        if (!popoverEl.contains(event.target)) {
+          // 点击的是Popover外部，关闭Popover
+          this.visible = false;
+          this.$emit('action-clicked', false);
+        }
       }
     }
   }

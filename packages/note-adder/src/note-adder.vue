@@ -9,12 +9,23 @@
       class="note-action-popover"
   >
     <div class="note-actions">
-      <note-action title="复制" type="copy" icon-name="house" :click-handler="copyText" />
-      <note-action title="背景色" type="background" icon-name="house" :click-handler="backgroundTextColor" is-dropdown />
-      <note-action title="波浪线" type="wave" icon-name="house" :click-handler="underlineText('wave')" is-dropdown />
-      <note-action title="直线" type="line" icon-name="house" :click-handler="underlineText('line')" is-dropdown />
-      <note-action title="写想法" type="idea" icon-name="house" :click-handler="noteText" />
-      <note-action title="清除" type="clear" icon-name="house" :click-handler="clearNote" />
+      <note-action title="复制" type="copy" icon-name="house" :shortcut-key="copyTextShortcutKey"
+                   :click-handler="copyText" />
+      <note-action title="背景" type="background" icon-name="house" :shortcut-key="backgroundShortcutKey"
+                   :colors="backgroundColors" :last-used="backgroundLastUsed" is-dropdown
+                   :click-handler="backgroundTextColor" @action-color-selected="selectColor" @action-clicked="handleActionClicked" />
+      <note-action title="波浪线" type="wave" icon-name="house" :shortcut-key="waveLineShortcutKey"
+                   :colors="waveLineColors":last-used="waveLineLastUsed" is-dropdown
+                   :click-handler="underlineText" @action-color-selected="selectColor" @action-clicked="handleActionClicked" />
+      <note-action title="直线" type="straight" icon-name="house" :shortcut-key="straightLineShortcutKey"
+                   :colors="straightLineColors" :last-used="straightLineLastUsed" is-dropdown
+                   :click-handler="underlineText" @action-color-selected="selectColor" @action-clicked="handleActionClicked" />
+      <note-action title="写想法" type="idea" icon-name="house" :shortcut-key="writeIdeaShortcutKey"
+                   :click-handler="writeIdea" />
+      <note-action title="知易" type="ai" icon-name="house" :shortcut-key="askAIShortcutKey"
+                   :click-handler="askAI" />
+      <note-action title="清除" type="clear" icon-name="house" :shortcut-key="clearNoteShortcutKey"
+                   :click-handler="clearNote" />
     </div>
   </el-popover>
 </template>
@@ -30,29 +41,71 @@ export default {
   },
   data() {
     return {
-      visible: false
-
+      visible: false,
+      backgroundColors: [
+        {name: '红', val: 'red'},
+        {name: '蓝', val: 'blue'},
+        {name: '绿', val: 'green'},
+        {name: '黄', val: 'yellow'},
+        {name: '紫', val: 'purple'},
+        {name: '粉', val: 'pink'}
+      ],
+      waveLineColors: [
+        {name: '红', val: 'red'},
+        {name: '蓝', val: 'blue'},
+        {name: '绿', val: 'green'},
+        {name: '黄', val: 'yellow'},
+        {name: '紫', val: 'purple'},
+        {name: '粉', val: 'pink'}
+      ],
+      straightLineColors: [
+        {name: '红', val: 'red'},
+        {name: '蓝', val: 'blue'},
+        {name: '绿', val: 'green'},
+        {name: '黄', val: 'yellow'},
+        {name: '紫', val: 'purple'},
+        {name: '粉', val: 'pink'}
+      ],
+      copyTextShortcutKey: 'Ctrl+Shift+C',
+      backgroundShortcutKey: 'Ctrl+Shift+H',
+      waveLineShortcutKey: 'Ctrl+Shift+W',
+      straightLineShortcutKey: 'Ctrl+Shift+S',
+      writeIdeaShortcutKey: 'Ctrl+Shift+I',
+      askAIShortcutKey: 'Ctrl+Shift+A',
+      clearNoteShortcutKey: 'Ctrl+Shift+C',
+      backgroundLastUsed: {
+        name: '红',
+        val: 'red'
+      },
+      waveLineLastUsed: {
+        name: '红',
+        val: 'red'
+      },
+      straightLineLastUsed: {
+        name: '红',
+        val: 'red'
+      }
     };
   },
   created() {
     // document.addEventListener('mouseup', this.handleTextSelection);
   },
   mounted() {
-    document.addEventListener('mouseup', this.handleTextSelection);
-    document.addEventListener('mousedown', this.handleDocumentClick);
+    document.addEventListener('mouseup', this.handleSelection);
+    document.addEventListener('mousedown', this.handleClick);
   },
   beforeDestroy() {
-    document.removeEventListener('mouseup', this.handleTextSelection);
-    document.removeEventListener('mousedown', this.handleDocumentClick);
+    document.removeEventListener('mouseup', this.handleSelection);
+    document.removeEventListener('mousedown', this.handleClick);
   },
   methods: {
-    handleTextSelection() {
+    handleSelection() {
       if (!this.visible) {
         requestAnimationFrame(() => {
           const selection = window.getSelection();
           // eslint-disable-next-line no-debugger
           debugger;
-          console.log('-----------------------------------------');;
+          console.log('-----------------------------------------');
           console.log('63  selection.anchorNode: ', selection.anchorNode);
           console.log('63  selection.anchorOffset: ', selection.anchorOffset);
           console.log('63  selection.focusNode: ', selection.focusNode);
@@ -71,7 +124,7 @@ export default {
         });
       }
     },
-    handleDocumentClick(event) {
+    handleClick(event) {
       if (this.visible) {
         // 判断点击事件是否发生在Popover外部
         const popoverEl = this.$refs.noteActionPopover.$el;
@@ -97,22 +150,40 @@ export default {
     },
     backgroundTextColor() {
       console.log('backgroundColor');
+      return true;
     },
-    underlineText(type) {
-      if (type === 'wave') {
-        console.log('wave');
-      } else if (type === 'line') {
-        console.log('line');
-      }
+    underlineText() {
       console.log('underlineText');
     },
-    noteText() {
+    writeIdea() {
       console.log('noteText');
+    },
+    askAI() {
+      console.log('askAI');
     },
     clearNote() {
       console.log('clearNote');
       // 关闭Popover
       this.visible = false;
+    },
+    selectColor(actionColor) {
+      document.addEventListener('mousedown', this.handleClick);
+      console.log('note-adder: selectColor: ', JSON.stringify(actionColor));
+      if (actionColor.type === 'background') {
+        this.backgroundLastUsed = actionColor.color;
+      } else if (actionColor.type === 'wave') {
+        this.waveLineLastUsed = actionColor.color;
+      } else if (actionColor.type === 'straight') {
+        this.straightLineLastUsed = actionColor.color;
+      }
+    },
+    handleActionClicked(colorVisible) {
+      console.log('note-adder: handleActionClicked: ', colorVisible);
+      if (colorVisible) {
+        document.removeEventListener('mousedown', this.handleClick);
+      } else {
+        document.addEventListener('mousedown', this.handleClick);
+      }
     }
   }
 };
