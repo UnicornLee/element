@@ -115,6 +115,8 @@ export default {
           console.log('63  selection.toString(): ', selection.toString());
           console.log('63  selection.rangeCount: ', selection.rangeCount);
           console.log('63  selection.type: ', selection.type);
+          console.log('63  selection.ranges: ', JSON.stringify(selection.ranges));
+          console.log('63  selection.getRangeAt(0): ', selection.getRangeAt(0));
           if (!!selection && selection.rangeCount > 0 && !selection.isCollapsed && selection.toString().length > 0 && selection.toString().trim() !== '' && selection.toString() !== '{}') {
             const selectedText = selection.toString();
             console.log('66  note-adder: ', selectedText);
