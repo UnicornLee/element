@@ -2,41 +2,26 @@
 @import "common/var";
 
 @include b(note-action) {
-  position: absolute;
-  box-sizing: border-box;
-  border-radius: 3px;
-  text-align: center;
-  color: #333;
-  cursor: pointer;
-  box-shadow: 0 3px 6px -4px rgba(0,0,0,.12), 0 6px 16px 0 rgba(0,0,0,.08), 0 9px 28px 8px rgba(0,0,0,.05);
-  background-image: linear-gradient(#9791e1, #fff);
-  height:70px;
-  z-index:999;
-  @include e(item){
-    display:inline-block;
-    vertical-align: middle;
-    width:70px;
+  position:relative;
+  @include e(straight-line) {
+    border-bottom:2px solid;
+    border-color:var(--straight-line-color);
   }
-  @include e(content) {
-    height:100%;
-    display:flex;
-    align-items: center;
-  }
-  @include e(color-item) {
-    width:20px;
-    height:20px;
-    display:inline-block;
-    border-radius: 100%;
-    margin:0 5px;
+  @include e(line) {
     cursor: pointer;
-    &.clear{
-      border:1px solid #c1c1c1;
-    }
+    background: var(--mark-bg-color);
   }
-  @include e(item-line){
+  @include e(wavy-line) {
+    position:relative;
     text-decoration: underline;
-    &.wavy{
-      text-decoration-style: wavy;
-    }
+    text-decoration-style: wavy;
+    text-decoration-color:var(--wavy-line-color);
+  }
+  @include e(item) {
+    display:inline-block;
+    cursor: pointer;
+  }
+  @include e(dashed-line) {
+
   }
 }
