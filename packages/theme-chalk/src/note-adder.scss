@@ -8,7 +8,7 @@
     border-color:var(--straight-line-color);
   }
   @include e(line) {
-    cursor: pointer;
+    //cursor: pointer;
     background: var(--mark-bg-color);
   }
   @include e(wavy-line) {

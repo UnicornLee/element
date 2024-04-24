@@ -50,19 +50,21 @@
 ```
 :::
 
-### Attributes
-| 参数      | 说明          | 类型      | 可选值                           | 默认值  |
-|---------- |-------------- |---------- |--------------------------------  |-------- |
-| width | 水印的宽度，content 的默认值为自身的宽度 | number | — | 120 |
-| height | 水印的高度，content 的默认值为自身的高度 | number | — | 64 |
-| rotate | 水印绘制时，旋转的角度 | number | — | -22 |
-| zIndex | 追加的水印元素的 z-index | number | — | 9 |
-| image | 图片源，建议导出 2 倍或 3 倍图，优先级高 (支持 base64 格式)	 | string | — | — |
-| content | 水印文字内容	 | string, array | - | - |
-| gap | 水印之间的间距	 | [number, number] | - | [100, 100]	 |
-| offset | 水印距离容器左上角的偏移量，默认为 gap/2 | [number, number] | - | [gap[0]/2, gap[1]/2] |
-| color | 字体颜色	 | string | - | rgba(0,0,0,.15) |
-| fontSize | 字体大小	 | number | - | 16 |
-| fontWeight | 字体粗细	 | string, number | - | normal |
-| fontFamily | 字体类型		 | string | - | Microsoft YaHei |
-| fontStyle | 字体样式			 | object | - | - |
+### 属性
+| 参数      | 说明                 | 类型      | 可选值                           | 默认值   |
+|---------- |--------------------|---------- |--------------------------------  |-------|
+| ranges | 样式数组，每个元素是对象，字段说明，详见下表  | Array | — | []    |
+
+### 事件
+无
+
+### ranges 属性
+| 参数         | 说明     | 类型     | 可选值                                       | 默认值 |
+|------------|--------|--------|-------------------------------------------|-----|
+| id         | 样式标识   | string | —                                         | -   |
+| start      | 文字开始索引 | number | —                                         | -   |
+| end        | 文字结束索引 | number | —                                         | -   |
+| text       | 文本内容   | string | —                                         | -   |
+| lineStyle       | 线的类型   | string | 1--波浪线，2--直线，3--背景色，4--背景色+波浪线，5--背景色+直线 | -   |
+| lineColor       | 线的颜色   | string | -                                         | -   |
+| bgColor | 背景色    | string | -                                         | -   |
