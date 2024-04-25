@@ -4,11 +4,14 @@
 @include b(note-action) {
   position:relative;
   @include e(straight-line) {
-    border-bottom:2px solid;
-    border-color:var(--straight-line-color);
+    //border-bottom:2px solid;
+    //border-color:var(--straight-line-color);
+    position:relative;
+    text-decoration: underline;
+    text-decoration-style: solid;
+    text-decoration-color:var(--straight-line-color);
   }
-  @include e(line) {
-    //cursor: pointer;
+  @include e(mark-bg) {
     background: var(--mark-bg-color);
   }
   @include e(wavy-line) {
@@ -22,6 +25,8 @@
     cursor: pointer;
   }
   @include e(dashed-line) {
-
+    cursor: pointer;
+    border-bottom:4px dotted;
+    border-color:var(--dotted-line-color);
   }
 }
