@@ -71,19 +71,20 @@ export default {
     handleClick(event) {
       if (this.computedVisible) {
         event.preventDefault();
+        event.stopPropagation();
         // 判断点击事件是否发生在Popover外部
         const popoverEl = this.$refs.noteColorSelectPopover.$el;
         if (!popoverEl.contains(event.target)) {
           // 点击的是Popover外部，关闭Popover
           this.$emit('color-selected', null);
-          document.removeEventListener('mousedown', this.handleClick);
+          // document.removeEventListener('mousedown', this.handleClick);
         }
       }
     },
     handleColor(color) {
       console.log('note-color-select: color selected', JSON.stringify(color));
       this.$emit('color-selected', color);
-      document.removeEventListener('mousedown', this.handleClick);
+      // document.removeEventListener('mousedown', this.handleClick);
     }
   }
 };

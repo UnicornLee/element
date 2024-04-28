@@ -19,7 +19,6 @@
     </div>
     <note-color-select :visible="colorSelectVisible" :lastUsed="lastUsed" :shortcut-key="shortcutKey"
                        :colors="colors" @color-selected="selectColor" />
-    <idea-write :visible="ideaWriteVisible" @idea-written="writeIdea" />
   </div>
 </template>
 
@@ -76,8 +75,7 @@ export default {
   },
   data() {
     return {
-      colorSelectVisible: false,
-      ideaWriteVisible: false
+      colorSelectVisible: false
     };
   },
   components: {
@@ -91,7 +89,7 @@ export default {
         this.colorSelectVisible = true;
       } else {
         if (this.type === 'idea') {
-          this.ideaWriteVisible = true;
+          this.$emit('action-idea-written');
         }
       }
     },
@@ -102,13 +100,6 @@ export default {
         this.$emit('action-color-selected', {type, color});
       }
       this.colorSelectVisible = false;
-    },
-    writeIdea(content) {
-      console.log('note-action: writeIdea', content);
-      if (content) {
-        this.$emit('action-idea-written', content);
-      }
-      this.ideaWriteVisible = false;
     }
   }
 };

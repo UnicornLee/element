@@ -3,13 +3,15 @@
       ref="noteIdeaWritePopover"
       placement="top"
       trigger="manual"
+      width="600"
       :value="computedVisible"
   >
     <el-input
         type="textarea"
         :rows="2"
         placeholder="请输入内容"
-        v-model="content">
+        v-model="content"
+    >
     </el-input>
     <div class="idea-write-footer">
       <el-button @click="handleCancel">取 消</el-button>
@@ -40,12 +42,21 @@ export default {
       return !this.content;
     }
   },
-  mounted() {
-    document.addEventListener('mousedown', this.handleClick);
+  watch: {
+    computedVisible(val) {
+      if (val) {
+        document.addEventListener('mousedown', this.handleClick);
+      } else {
+        document.removeEventListener('mousedown', this.handleClick);
+      }
+    }
   },
-  beforeDestroy() {
-    document.removeEventListener('mousedown', this.handleClick);
-  },
+  // mounted() {
+  //   document.addEventListener('mousedown', this.handleClick);
+  // },
+  // beforeDestroy() {
+  //   document.removeEventListener('mousedown', this.handleClick);
+  // },
   methods: {
     handleClick(event) {
       if (this.computedVisible) {
@@ -55,18 +66,15 @@ export default {
         if (!popoverEl.contains(event.target)) {
           // 点击的是Popover外部，关闭Popover
           this.$emit('idea-written', null);
-          document.removeEventListener('mousedown', this.handleClick);
         }
       }
     },
     handleCancel() {
       this.$emit('idea-written', null);
-      document.removeEventListener('mousedown', this.handleClick);
     },
     handleConfirm() {
       this.$emit('idea-written', this.content);
       this.content = '';
-      document.removeEventListener('mousedown', this.handleClick);
     }
   }
 };
