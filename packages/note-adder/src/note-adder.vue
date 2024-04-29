@@ -113,7 +113,8 @@ export default {
     console.log('note-adder: this.ranges: ', this.ranges);
     console.log('note-adder: this.signs: ', this.signs);
     this.signs = this.ranges;
-    this.initNotes();
+    this.ideas = this.notes;
+    // this.initNotes();
   },
   computed: {
     hasPopup() {
@@ -151,6 +152,7 @@ export default {
     }
   },
   mounted() {
+    this.initNotes();
     document.addEventListener('mouseup', this.handleSelection);
     document.addEventListener('mousedown', this.handleClick);
   },
@@ -264,10 +266,10 @@ export default {
     writeIdea(content) {
       console.log('note-adder: writeIdea: ', content);
       this.ideaWriteVisible = false;
-      this.ideaId = uuidv4();
-      this.mark(4);
+      const ideaId = uuidv4();
+      this.mark(4, null, [ideaId]);
       this.ideas.push({
-        id: this.ideaId,
+        id: ideaId,
         title: this.selectedText,
         content: content,
         creatTime: new Date().toLocaleString()
@@ -330,9 +332,9 @@ export default {
       }
       return offset;
     },
-    mark(type, color) {
+    mark(type, color, ideaIds) {
       console.log('259  note-adder: mark: ', type, color);
-      this.handleTextNodes(type, color);
+      this.handleTextNodes(type, color, ideaIds);
     },
     initNotes() {
       console.log('263  note-adder: initNotes: ', this.signs);
@@ -345,38 +347,40 @@ export default {
           for (let i = 0; i < sign.marks.length; i++) {
             const {start, end, lineStyle, lineColor, bgColor, ideaIds} = sign.marks[i];
             if (i === 0 && start > 0) {
-              const startNode = document.createTextNode(node.nodeValue.slice(0, start));
+              const startNode = document.createTextNode(node.textContent.slice(0, start));
               startNode && fragment.appendChild(startNode);
             }
             let textNode = document.createElement('span');
-            textNode.textContent = node.nodeValue.slice(start, end + 1);
+            textNode.textContent = node.textContent.slice(start, end);
             let className = '';
             let style = '';
             if (lineStyle === 1 || lineStyle === 2) {
-              className = this.getClassName(lineStyle, lineColor);
-              style = this.getStyle(lineStyle, lineColor);
+              className += this.getClassName(lineStyle, lineColor);
+              style += this.getStyle(lineStyle, lineColor);
             }
             if (bgColor && bgColor !== '') {
-              className = this.getClassName(3, lineColor, className);
-              style = this.getStyle(3, lineColor, style);
+              className += this.getClassName(3, lineColor, className);
+              style += this.getStyle(3, lineColor, style);
             }
             if (ideaIds && ideaIds.length > 0) {
-              className = this.getClassName(4, null, className);
-              style = this.getStyle(4, null, style);
+              className += this.getClassName(4, null, ideaIds, className);
+              style += this.getStyle(4, null, style);
             }
+            textNode.className = className;
+            textNode.setAttribute('style', style);
             fragment.appendChild(textNode);
-            if (i === sign.marks.length - 1 && end < node.nodeValue.length) {
-              const endNode = document.createTextNode(node.nodeValue.slice(end + 1));
+            if (i === sign.marks.length - 1 && end < node.textContent.length) {
+              const endNode = document.createTextNode(node.textContent.slice(end + 1));
               endNode && fragment.appendChild(endNode);
             }
           }
           console.log('364  note-adder: fragment: ', fragment);
           // 替换文本节点
-          node.parentNode.replaceChild(fragment, node);
+          node.replaceChild(fragment, node.childNodes[0]);
         }
       });
     },
-    handleTextNodes(type, color) {
+    handleTextNodes(type, color, ideaIds) {
       let textNodeIds = [];
       // 遍历文本节点
       this.textNodes.forEach((node) => {
@@ -423,7 +427,7 @@ export default {
             }
           }
           // 替换该文本节点
-          this.replaceTextNode(node, parentNodeId, startOffset, endOffset, type, color);
+          this.replaceTextNode(node, parentNodeId, startOffset, endOffset, type, color, ideaIds);
         }
       });
       let updateSigns = [];
@@ -498,7 +502,7 @@ export default {
       }
       console.log('409  this.signs: ', JSON.stringify(this.signs));
     },
-    replaceTextNode(node, parentNodeId, startOffset, endOffset, type, color) {
+    replaceTextNode(node, parentNodeId, startOffset, endOffset, type, color, ideaIds) {
       // 创建一个文档片段用来替换文本节点
       let fragment = document.createDocumentFragment();
       let startNode = null;
@@ -522,7 +526,7 @@ export default {
         // 改成直接包裹整块文本
         let textNode = document.createElement('span');
         textNode.textContent = node.nodeValue.slice(startOffset, endOffset);
-        textNode.className = this.getClassName(type, color);
+        textNode.className = this.getClassName(type, color, ideaIds);
         textNode.setAttribute('style', this.getStyle(type, color));
         fragment.appendChild(textNode);
 
@@ -550,14 +554,14 @@ export default {
         startNode && fragment.appendChild(startNode);
 
         // 改成直接包裹整块文本
-        const newClassName = this.getClassName(type, color, className);
+        const newClassName = this.getClassName(type, color, ideaIds, className);
         if (newClassName.trim() === '') {
           let textNode = document.createTextNode(node.nodeValue.slice(startOffset, endOffset));
           fragment.appendChild(textNode);
         } else {
           let textNode = document.createElement('span');
           textNode.textContent = node.nodeValue.slice(startOffset, endOffset);
-          textNode.className = this.getClassName(type, color, className);
+          textNode.className = this.getClassName(type, color, ideaIds, className);
           textNode.setAttribute('style', this.getStyle(type, color, style));
           fragment.appendChild(textNode);
         }
@@ -568,7 +572,7 @@ export default {
         node.parentNode.parentNode.replaceChild(fragment, node.parentNode);
       }
     },
-    getClassName(type, color, className) {
+    getClassName(type, color, ideaIds, className) {
       let classList = className ? className.split(' ').filter(item => item.trim() !== '') : ['el-note-action'];
       let index = -1;
       switch (type) {
@@ -626,11 +630,18 @@ export default {
           }
           return classList.join(' ');
         case 4: // 写想法
-          index = classList.indexOf('el-note-action__dashed-line');
-          if (index === -1) {
-            classList.push('el-note-action__dashed-line');
+          if (ideaIds && ideaIds.length > 0) {
+            console.log('640  ideaIds: ', ideaIds);
+            index = classList.indexOf('el-note-action__dashed-line');
+            if (index === -1) {
+              classList.push('el-note-action__dashed-line');
+            }
+            ideaIds.forEach((ideaId) => {
+              if (!classList.includes(`idea-id-${ideaId}`)) {
+                classList.push(`idea-id-${ideaId}`);
+              }
+            });
           }
-          classList.push(`idea-id-${this.ideaId}`);
           return classList.join(' ');
         default:
           return className;

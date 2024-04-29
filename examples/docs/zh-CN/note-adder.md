@@ -147,12 +147,12 @@
                 notes: [
                     {
                         id: '72989757-1015-464b-a40b-5dc3866ee353',
-                        title: '第三条',
+                        title: '逻辑清晰、结构合理且高效',
                         content: 'aa'
                     },
                     {
                         id: '9a6daac7-b493-4d9e-8b2d-7f3c3aff551b',
-                        title: '第三条',
+                        title: '构合理',
                         content: 'bb'
                     }
                 ]

@@ -38,6 +38,8 @@
 </template>
 
 <script>
+import _ from 'lodash';
+
 export default {
   name: 'idea-list',
   props: {
@@ -91,7 +93,7 @@ export default {
     },
     notes: {
       handler(val) {
-        this.allNotes = val;
+        this.allNotes = _.cloneDeep(val);
       },
       deep: true
     }
