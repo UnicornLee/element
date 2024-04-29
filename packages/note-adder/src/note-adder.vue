@@ -27,7 +27,7 @@
       </div>
     </el-popover>
     <idea-write :visible="ideaWriteVisible" @idea-written="writeIdea" />
-    <idea-list :visible="ideaListVisible" :notes="currentIdeas" @ideas-show-close="closeIdeas" @idea-delete="deleteIdea" />
+    <idea-list :visible="ideaListVisible" :notes="currentIdeas" @ideas-show-close="closeIdeas" @idea-edit="editIdea" @idea-delete="deleteIdea" />
   </div>
 </template>
 
@@ -101,16 +101,23 @@ export default {
         val: '#FF0000'
       },
       dottedLineColor: '#A9A9A9',
-      signs: this.ranges || [],
-      ideas: this.notes || [],
+      signs: [],
+      ideas: [],
       currentIdeas: [],
       ideaWriteVisible: false,
       ideaListVisible: false
     };
   },
+  created() {
+    console.log('note-adder: created');
+    console.log('note-adder: this.ranges: ', this.ranges);
+    console.log('note-adder: this.signs: ', this.signs);
+    this.signs = this.ranges;
+    this.initNotes();
+  },
   computed: {
     hasPopup() {
-      return this.visible || this.ideaWriteVisible || this.ideaListVisible;
+      return this.ideaWriteVisible || this.ideaListVisible;
     }
   },
   watch: {
@@ -128,6 +135,19 @@ export default {
           document.addEventListener('mousedown', this.handleClick);
         }
       }, 500);
+    },
+    ranges: {
+      handler(val) {
+        console.log('134  note-adder: ranges: ', val);
+        this.signs = val;
+      },
+      deep: true
+    },
+    notes: {
+      handler(val) {
+        this.ideas = val;
+      },
+      deep: true
     }
   },
   mounted() {
@@ -299,8 +319,10 @@ export default {
       return offset;
     },
     getPrevSiblingOffset(node) {
+      console.log('302  getPrevSiblingOffset: ', node);
       let offset = 0;
       let prevNode = node.previousSibling;
+      console.log('305  getPrevSiblingOffset--prevNode: ', prevNode);
       while (prevNode) {
         offset +=
             prevNode.nodeType === 3 ? prevNode.nodeValue.length : prevNode.textContent.length;
@@ -311,6 +333,48 @@ export default {
     mark(type, color) {
       console.log('259  note-adder: mark: ', type, color);
       this.handleTextNodes(type, color);
+    },
+    initNotes() {
+      console.log('263  note-adder: initNotes: ', this.signs);
+      this.signs.forEach((sign) => {
+        const node = document.getElementById(`note_adder_${sign.id}`);
+        console.log('334  note-adder: initNotes: node: ', node);
+        console.log('334  note-adder: initNotes: node.childNodes[0]: ', node.childNodes[0]);
+        if (node && sign.marks.length > 0) {
+          let fragment = document.createDocumentFragment();
+          for (let i = 0; i < sign.marks.length; i++) {
+            const {start, end, lineStyle, lineColor, bgColor, ideaIds} = sign.marks[i];
+            if (i === 0 && start > 0) {
+              const startNode = document.createTextNode(node.nodeValue.slice(0, start));
+              startNode && fragment.appendChild(startNode);
+            }
+            let textNode = document.createElement('span');
+            textNode.textContent = node.nodeValue.slice(start, end + 1);
+            let className = '';
+            let style = '';
+            if (lineStyle === 1 || lineStyle === 2) {
+              className = this.getClassName(lineStyle, lineColor);
+              style = this.getStyle(lineStyle, lineColor);
+            }
+            if (bgColor && bgColor !== '') {
+              className = this.getClassName(3, lineColor, className);
+              style = this.getStyle(3, lineColor, style);
+            }
+            if (ideaIds && ideaIds.length > 0) {
+              className = this.getClassName(4, null, className);
+              style = this.getStyle(4, null, style);
+            }
+            fragment.appendChild(textNode);
+            if (i === sign.marks.length - 1 && end < node.nodeValue.length) {
+              const endNode = document.createTextNode(node.nodeValue.slice(end + 1));
+              endNode && fragment.appendChild(endNode);
+            }
+          }
+          console.log('364  note-adder: fragment: ', fragment);
+          // 替换文本节点
+          node.parentNode.replaceChild(fragment, node);
+        }
+      });
     },
     handleTextNodes(type, color) {
       let textNodeIds = [];
@@ -336,20 +400,30 @@ export default {
           parentNodeClassName = node.parentNode.className;
         }
         console.log('*************parentNodeId: ', parentNodeId);
+        console.log('341  node.parentNode: ', node.parentNode);
+        console.log('342  node.parentNode.parentNode: ', node.parentNode.parentNode);
         if (parentNodeId.startsWith('note_adder_') || parentNodeClassName.includes('el-note-action')) {
-          // 替换该文本节点
-          this.replaceTextNode(node, parentNodeId, startOffset, endOffset, type, color);
-          if (parentNodeId.startsWith('note_adder_')) {
+          // 收集操作文本的id
+          console.log('282  replaceTextNode!!!!!!!!!!!!!!!!');
+          console.log('282  parentNodeId: ', parentNodeId);
+          console.log('282  parentNodeClassName: ', parentNodeClassName);
+          console.log('282  node.parentNode: ', node.parentNode);
+          console.log('282  node.parentNode.parentNode: ', node.parentNode.parentNode);
+          if (parentNodeId.startsWith('note_adder_') && textNodeIds.indexOf(parentNodeId) === -1) {
             textNodeIds.push(parentNodeId);
           } else {
+            // const parentParentNode = node.closest('* > *');
+            // console.log('353@@@@@@@@@  parentParentNode: ', parentParentNode);
             if (node.parentNode.parentNode && node.parentNode.parentNode.attributes &&
                 node.parentNode.parentNode.attributes.id) {
               const parentParentNodeId = node.parentNode.parentNode.attributes.id.value;
-              if (parentParentNodeId.startsWith('note_adder_')) {
+              if (parentParentNodeId.startsWith('note_adder_') && textNodeIds.indexOf(parentParentNodeId) === -1) {
                 textNodeIds.push(parentParentNodeId);
               }
             }
           }
+          // 替换该文本节点
+          this.replaceTextNode(node, parentNodeId, startOffset, endOffset, type, color);
         }
       });
       let updateSigns = [];
@@ -361,9 +435,10 @@ export default {
         ids.push(id);
         updateSign.id = id;
         const signedNode = document.getElementById(nodeId);
+        console.log('364  signedNode: ', signedNode);
         let updateMarks = [];
         console.log('366  signedNode.childNodes: ', signedNode.childNodes);
-        this.walk(signedNode.childNodes, (node) => {
+        this.walk(signedNode, (node) => {
           console.log('366  node: ', node);
           let mark = {};
           let isSigned = false;
@@ -388,7 +463,9 @@ export default {
           }
           let ideaIds = [];
           if (node.className && node.className.includes('idea-id-')) {
+            console.log('394  node.className: ', node.className);
             const classList = node.className.split(' ').filter(item => item.trim() !== '');
+            console.log('396  classList: ', classList);
             classList.forEach((className) => {
               if (className.startsWith('idea-id-')) {
                 ideaIds.push(className.replace('idea-id-', '').trim());
@@ -397,8 +474,12 @@ export default {
             });
           }
           if (isSigned) {
+            mark.ideaIds = ideaIds;
             const currentOffset = this.getPrevSiblingOffset(node);
             mark.start = currentOffset;
+            console.log('404  currentOffset: ', currentOffset);
+            console.log('404  node.textContent: ', node.textContent);
+            console.log('404  node.textContent.length: ', node.textContent.length);
             mark.end = currentOffset + node.textContent.length;
             updateMarks.push(mark);
           }
@@ -627,6 +708,16 @@ export default {
       this.currentIdeas = [];
       console.log('note-adder: closeIdeas: ', updateNotes);
     },
+    editIdea(id, content) {
+      console.log('note-adder: editIdea: ', id, content);
+      for (let i = 0; i < this.ideas.length; i++) {
+        if (this.ideas[i].id === id) {
+          this.ideas[i].content = content;
+          break;
+        }
+      }
+      console.log('note-adder: editIdea: this.ideas: ', JSON.stringify(this.ideas));
+    },
     deleteIdea(ideaId) {
       console.log('note-adder: deleteIdea: ', ideaId);
       // 1. 删除想法
@@ -662,20 +753,23 @@ export default {
       // 3. 遍历文本节点，删除该笔记id
       signIds.forEach(index => {
         const signedNode = document.getElementById(`note_adder_${index}`);
-        this.walk(signedNode.childNodes, (node) => {
+        this.walk(signedNode, (node) => {
           if (node.className) {
             let className = node.className;
             console.log('587  className: ', className);
             if (className.includes('idea-id-' + ideaId)) {
-              if (className.count('idea-id-') === 1) {
+              const count = className.split('idea-id-' + ideaId).length - 1;
+              if (count === 1) {
                 className = className.replace('idea-id-' + ideaId, '').trim();
                 className = className.replace('el-note-action__dashed-line', '').trim();
-                if (className.count('el-note-action__') > 0) {
+                if (className.includes('el-note-action__')) {
                   let newNode = node.cloneNode(true);
                   newNode.className = className;
                   node.parentNode.replaceChild(newNode, node);
                 } else {
-                  let textNode = document.createTextNode(node.nodeValue);
+                  console.log('599  !!!!!!!!node.textContent: ', node.textContent);
+                  console.log('599  !!!!!!!!node.parentNode: ', node.parentNode);
+                  let textNode = document.createTextNode(node.textContent);
                   node.parentNode.replaceChild(textNode, node);
                 }
               } else {

@@ -8,7 +8,7 @@
 ```html
 <template>
   <div>
-      <el-note-adder />
+      <el-note-adder :ranges="ranges" :notes="notes" />
       <p fmp_c="0">
           <span id="note_adder_1">为进一步加强公开募集证券投资基金（以下简称基金）证券交易费用管理，规范基金管理人证券交易佣金及分配管理，保护基金份额持有人合法权益，abc 123提升证券公司机构投资者服务能力，根据</span>
           <span class="laws-quote__link" data-id="24181902543271093" fmp_c="0" style="color: #1990fe; cursor: pointer;">《证券投资基金法》</span>
@@ -47,6 +47,119 @@
       </p>
   </div>
 </template>
+<script>
+    export default {
+        data() {
+            return {
+                ranges: [
+                    {
+                        "id": "2",
+                        "marks": [
+                            {
+                                "lineStyle": 1,
+                                "lineColor": "#FF0000",
+                                "ideaIds": [],
+                                "start": 14,
+                                "end": 24
+                            }
+                        ]
+                    },
+                    {
+                        "id": "4",
+                        "marks": [
+                            {
+                                "lineStyle": 1,
+                                "lineColor": "#FF0000",
+                                "ideaIds": [],
+                                "start": 0,
+                                "end": 90
+                            },
+                            {
+                                "color": "#87CEFA",
+                                "lineStyle": 1,
+                                "lineColor": "#FF0000",
+                                "ideaIds": [],
+                                "start": 90,
+                                "end": 166
+                            },
+                            {
+                                "color": "#87CEFA",
+                                "lineStyle": 1,
+                                "lineColor": "#FF0000",
+                                "ideaIds": [
+                                    "72989757-1015-464b-a40b-5dc3866ee353"
+                                ],
+                                "start": 166,
+                                "end": 172
+                            },
+                            {
+                                "color": "#87CEFA",
+                                "lineStyle": 1,
+                                "lineColor": "#FF0000",
+                                "ideaIds": [
+                                    "72989757-1015-464b-a40b-5dc3866ee353",
+                                    "9a6daac7-b493-4d9e-8b2d-7f3c3aff551b"
+                                ],
+                                "start": 172,
+                                "end": 173
+                            },
+                            {
+                                "lineStyle": 1,
+                                "lineColor": "#FF0000",
+                                "ideaIds": [
+                                    "72989757-1015-464b-a40b-5dc3866ee353",
+                                    "9a6daac7-b493-4d9e-8b2d-7f3c3aff551b"
+                                ],
+                                "start": 173,
+                                "end": 175
+                            },
+                            {
+                                "lineStyle": 1,
+                                "lineColor": "#FF0000",
+                                "ideaIds": [
+                                    "72989757-1015-464b-a40b-5dc3866ee353"
+                                ],
+                                "start": 175,
+                                "end": 178
+                            },
+                            {
+                                "lineStyle": 1,
+                                "lineColor": "#FF0000",
+                                "ideaIds": [],
+                                "start": 178,
+                                "end": 237
+                            }
+                        ]
+                    },
+                    {
+                        "id": "6",
+                        "marks": [
+                            {
+                                "lineStyle": 1,
+                                "lineColor": "#FF0000",
+                                "ideaIds": [],
+                                "start": 0,
+                                "end": 183
+                            }
+                        ]
+                    }
+                ],
+                notes: [
+                    {
+                        id: '72989757-1015-464b-a40b-5dc3866ee353',
+                        title: '第三条',
+                        content: 'aa'
+                    },
+                    {
+                        id: '9a6daac7-b493-4d9e-8b2d-7f3c3aff551b',
+                        title: '第三条',
+                        content: 'bb'
+                    }
+                ]
+            }
+        }
+    }
+</script>
 ```
 :::
 
