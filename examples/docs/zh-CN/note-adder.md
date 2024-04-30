@@ -75,7 +75,6 @@
                                 "end": 90
                             },
                             {
-                                "color": "#87CEFA",
                                 "lineStyle": 1,
                                 "lineColor": "#FF0000",
                                 "ideaIds": [],
@@ -83,7 +82,6 @@
                                 "end": 166
                             },
                             {
-                                "color": "#87CEFA",
                                 "lineStyle": 1,
                                 "lineColor": "#FF0000",
                                 "ideaIds": [
@@ -93,7 +91,7 @@
                                 "end": 172
                             },
                             {
-                                "color": "#87CEFA",
+                                "bgColor": "#87CEFA",
                                 "lineStyle": 1,
                                 "lineColor": "#FF0000",
                                 "ideaIds": [
@@ -104,6 +102,7 @@
                                 "end": 173
                             },
                             {
+                                "bgColor": "#87CEFA",
                                 "lineStyle": 1,
                                 "lineColor": "#FF0000",
                                 "ideaIds": [
@@ -114,6 +113,7 @@
                                 "end": 175
                             },
                             {
+                                "bgColor": "#87CEFA",
                                 "lineStyle": 1,
                                 "lineColor": "#FF0000",
                                 "ideaIds": [
@@ -123,6 +123,7 @@
                                 "end": 178
                             },
                             {
+                                "bgColor": "#87CEFA",
                                 "lineStyle": 1,
                                 "lineColor": "#FF0000",
                                 "ideaIds": [],
@@ -135,11 +136,31 @@
                         "id": "6",
                         "marks": [
                             {
+                                "bgColor": "#87CEFA",
                                 "lineStyle": 1,
                                 "lineColor": "#FF0000",
                                 "ideaIds": [],
                                 "start": 0,
+                                "end": 37
+                            },
+                            {
+                                "lineStyle": 1,
+                                "lineColor": "#FF0000",
+                                "ideaIds": [],
+                                "start": 37,
                                 "end": 183
+                            }
+                        ]
+                    },
+                    {
+                        "id": "8",
+                        "marks": [
+                            {
+                                "ideaIds": [
+                                    "0be75588-1c4c-4fd1-8fb3-a2e4dbfaea13"
+                                ],
+                                "start": 157,
+                                "end": 187
                             }
                         ]
                     }
@@ -154,6 +175,11 @@
                         id: '9a6daac7-b493-4d9e-8b2d-7f3c3aff551b',
                         title: '构合理',
                         content: 'bb'
+                    },
+                    {
+                        id: '0be75588-1c4c-4fd1-8fb3-a2e4dbfaea13',
+                        title: '主题编辑器，可视化定制和管理站点主题、组件样式',
+                        content: 'cc'
                     }
                 ]
             }

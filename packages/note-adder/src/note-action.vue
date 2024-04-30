@@ -90,6 +90,8 @@ export default {
       } else {
         if (this.type === 'idea') {
           this.$emit('action-idea-written');
+        } else if (this.type === 'clear') {
+          this.$emit('action-clear');
         }
       }
     },

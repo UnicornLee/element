@@ -23,7 +23,7 @@
                      @action-color-selected="selectColor" />
         <note-action title="写想法" type="idea" icon-name="edit" @action-idea-written="showIdeaWrite" />
         <note-action title="知易" type="ai" icon-name="magic-stick" />
-        <note-action title="清除" type="clear" icon-name="delete" :shortcut-key="clearNoteShortcutKey" />
+        <note-action title="清除" type="clear" icon-name="delete" :shortcut-key="clearNoteShortcutKey" @action-clear="clearSigns" />
       </div>
     </el-popover>
     <idea-write :visible="ideaWriteVisible" @idea-written="writeIdea" />
@@ -32,6 +32,7 @@
 </template>
 
 <script>
+import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import NoteAction from './note-action';
 import IdeaList from './idea-list';
@@ -112,8 +113,8 @@ export default {
     console.log('note-adder: created');
     console.log('note-adder: this.ranges: ', this.ranges);
     console.log('note-adder: this.signs: ', this.signs);
-    this.signs = this.ranges;
-    this.ideas = this.notes;
+    this.signs = _.cloneDeep(this.ranges);
+    this.ideas = _.cloneDeep(this.notes);
     // this.initNotes();
   },
   computed: {
@@ -169,10 +170,10 @@ export default {
             console.log('63  selection.type: ', selection.type);
             console.log('handleSelection: ', new Date());
             // console.log('63  selection.ranges: ', JSON.stringify(selection.ranges));
-            console.log('63  selection.getRangeAt(0): ', selection.getRangeAt(0));
             if (selection.type === 'Range' && selection.rangeCount > 0 && !selection.isCollapsed &&
                 selection.toString().length > 0 && selection.toString().trim() !== '' &&
                 selection.toString() !== '{}') {
+              console.log('63  selection.getRangeAt(0): ', selection.getRangeAt(0));
               this.range = selection.getRangeAt(0).cloneRange();
               // 校验信息
               const {commonAncestorContainer, startContainer, endContainer} = selection.getRangeAt(0);
@@ -207,14 +208,30 @@ export default {
               if (startContainer && startContainer.parentNode && startContainer.parentNode.className) {
                 const className = startContainer.parentNode.className;
                 let classList = className.split(' ');
-                let ideas = [];
+                let ideaIds = [];
                 classList.forEach((className) => {
                   if (className.startsWith('idea-id-')) {
                     const ideaId = className.replace('idea-id-', '');
-                    ideas.push(this.ideas.find((idea) => idea.id === ideaId));
+                    this.signs.forEach((sign) => {
+                      sign.marks.forEach((mark) => {
+                        if (mark.ideaIds && mark.ideaIds.includes(ideaId)) {
+                          mark.ideaIds.forEach((id) => {
+                            if (!ideaIds.includes(id)) {
+                              ideaIds.push(id);
+                            }
+                          });
+                        }
+                      });
+                    });
                   }
                 });
-                ideas = ideas.filter((idea) => idea);
+                let ideas = [];
+                ideaIds.forEach((ideaId) => {
+                  const findIdea = this.ideas.find((idea) => idea.id === ideaId);
+                  if (findIdea) {
+                    ideas.push(findIdea);
+                  }
+                });
                 if (ideas.length > 0) {
                   console.log('note-adder: handleSelection: ideas: ', ideas);
                   this.currentIdeas = ideas;
@@ -259,6 +276,10 @@ export default {
       // 关闭Popover
       this.visible = false;
     },
+    clearSigns() {
+      this.mark(0, null, []);
+      this.visible = false;
+    },
     showIdeaWrite() {
       this.ideaWriteVisible = true;
       this.visible = false;
@@ -274,6 +295,10 @@ export default {
         content: content,
         creatTime: new Date().toLocaleString()
       });
+    },
+    selectLastUsedColor(type, color) {
+      console.log('note-adder: selectLastUsedColor: ', type, color);
+      this.selectColor({type, color});
     },
     selectColor(actionColor) {
       document.addEventListener('mousedown', this.handleClick);
@@ -359,11 +384,17 @@ export default {
               style += this.getStyle(lineStyle, lineColor);
             }
             if (bgColor && bgColor !== '') {
-              className += this.getClassName(3, lineColor, className);
-              style += this.getStyle(3, lineColor, style);
+              if (!className.endsWith(' ')) {
+                className += ' ';
+              }
+              className += this.getClassName(3, bgColor);
+              style += this.getStyle(3, bgColor);
             }
             if (ideaIds && ideaIds.length > 0) {
-              className += this.getClassName(4, null, ideaIds, className);
+              if (!className.endsWith(' ')) {
+                className += ' ';
+              }
+              className += this.getClassName(4, null, ideaIds);
               style += this.getStyle(4, null, style);
             }
             textNode.className = className;
@@ -408,11 +439,11 @@ export default {
         console.log('342  node.parentNode.parentNode: ', node.parentNode.parentNode);
         if (parentNodeId.startsWith('note_adder_') || parentNodeClassName.includes('el-note-action')) {
           // 收集操作文本的id
-          console.log('282  replaceTextNode!!!!!!!!!!!!!!!!');
-          console.log('282  parentNodeId: ', parentNodeId);
-          console.log('282  parentNodeClassName: ', parentNodeClassName);
-          console.log('282  node.parentNode: ', node.parentNode);
-          console.log('282  node.parentNode.parentNode: ', node.parentNode.parentNode);
+          // console.log('282  replaceTextNode!!!!!!!!!!!!!!!!');
+          // console.log('282  parentNodeId: ', parentNodeId);
+          // console.log('282  parentNodeClassName: ', parentNodeClassName);
+          // console.log('282  node.parentNode: ', node.parentNode);
+          // console.log('282  node.parentNode.parentNode: ', node.parentNode.parentNode);
           if (parentNodeId.startsWith('note_adder_') && textNodeIds.indexOf(parentNodeId) === -1) {
             textNodeIds.push(parentNodeId);
           } else {
@@ -430,6 +461,8 @@ export default {
           this.replaceTextNode(node, parentNodeId, startOffset, endOffset, type, color, ideaIds);
         }
       });
+
+      // 更新需要保存的数据
       let updateSigns = [];
       let ids = [];
       console.log('356  textNodeIds: ', textNodeIds);
@@ -460,7 +493,7 @@ export default {
                 mark.lineColor = item.replace('--straight-line-color:', '').trim();
                 isSigned = true;
               } else if (item.startsWith('--mark-bg-color')) {
-                mark.color = item.replace('--mark-bg-color:', '').trim();
+                mark.bgColor = item.replace('--mark-bg-color:', '').trim();
                 isSigned = true;
               }
             });
@@ -509,6 +542,11 @@ export default {
       let endNode = null;
       if (parentNodeId.startsWith('note_adder_')) {
         // 如果没有加笔记，点击取消操作，什么也不做。
+        // 0：清除；4：写想法；3：背景色；1：波浪线；2：直线
+        if (type === 0) {
+          // 清除操作，什么也不做
+          return;
+        }
         if (!color && type !== 4) {
           return;
         }
@@ -537,14 +575,14 @@ export default {
       } else {
         const className = node.parentNode.className;
         const style = node.parentNode.attributes.style.value;
-        // 截取前一段不需要划线的文本
+        // 生成前一段需要保持原样式的span
         if (startOffset !== 0) {
           startNode = document.createElement('span');
           startNode.textContent = node.nodeValue.slice(0, startOffset);
           startNode.className = className;
           startNode.setAttribute('style', style);
         }
-        // 截取后一段不需要划线的文本
+        // 生成后一段需要保持原样式的span
         if (endOffset < node.nodeValue.length) {
           endNode = document.createElement('span');
           endNode.textContent = node.nodeValue.slice(endOffset);
@@ -553,7 +591,7 @@ export default {
         }
         startNode && fragment.appendChild(startNode);
 
-        // 改成直接包裹整块文本
+        // 生成需要修改样式的文本或span
         const newClassName = this.getClassName(type, color, ideaIds, className);
         if (newClassName.trim() === '') {
           let textNode = document.createTextNode(node.nodeValue.slice(startOffset, endOffset));
@@ -576,6 +614,20 @@ export default {
       let classList = className ? className.split(' ').filter(item => item.trim() !== '') : ['el-note-action'];
       let index = -1;
       switch (type) {
+        case 0: // 清除
+          index = classList.indexOf('el-note-action__dashed-line');
+          if (index !== -1) {
+            let newClassList = [];
+            classList.forEach((item) => {
+              if (item === 'el-note-action__dashed-line' || !item.startsWith('el-note-action')) {
+                newClassList.push(item);
+              }
+            });
+            classList = newClassList;
+          } else {
+            classList = [];
+          }
+          return classList.join(' ');
         case 1: // 波浪线
           if (color) {
             index = classList.indexOf('el-note-action__straight-line');
@@ -652,6 +704,11 @@ export default {
       console.log('523  getStyle: ', styleArr);
       let newStyle = '';
       switch (type) {
+        case 0: // 清除
+          if (style && style.includes('--dotted-line-color')) {
+            newStyle += `--dotted-line-color: ${this.dottedLineColor};`;
+          }
+          return newStyle;
         case 1: // 波浪线
           if (color) {
             newStyle += '--wavy-line-color:' + color + ';';
