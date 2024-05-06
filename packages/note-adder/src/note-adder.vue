@@ -438,14 +438,16 @@ export default {
     writeIdea(content) {
       console.log('note-adder: writeIdea: ', content);
       this.ideaWriteVisible = false;
-      const ideaId = uuidv4();
-      this.mark(4, null, [ideaId]);
-      this.ideas.push({
-        id: ideaId,
-        title: this.selectedText,
-        content: content,
-        creatTime: new Date().toLocaleString()
-      });
+      if (content) {
+        const ideaId = uuidv4();
+        this.mark(4, null, [ideaId]);
+        this.ideas.push({
+          id: ideaId,
+          title: this.selectedText,
+          content: content,
+          creatTime: new Date().toLocaleString()
+        });
+      }
     },
     selectLastUsedColor(type, color) {
       console.log('note-adder: selectLastUsedColor: ', type, color);
