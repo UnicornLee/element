@@ -3,27 +3,27 @@
     <el-popover
         ref="noteActionPopover"
         placement="top"
-        offset="10"
         trigger="manual"
         v-model="visible"
         visible-arrow
         class="note-action-popover"
     >
       <div class="note-actions">
-        <note-action title="复制" type="copy" icon-name="document-copy" :shortcut-key="copyTextShortcutKey"
+        <note-action v-if="isCopy" title="复制" type="copy" icon-name="document-copy" :shortcut-key="copyTextShortcutKey"
                      :click-handler="copyText" />
-        <note-action title="背景" type="background" icon-name="house" :shortcut-key="backgroundShortcutKey"
+        <note-action v-if="isBg" title="背景" type="background" icon-name="house" :shortcut-key="backgroundShortcutKey"
                      :colors="backgroundColors" :last-used="backgroundLastUsed" is-dropdown
                      @action-color-selected="selectColor" />
-        <note-action title="波浪线" type="wavy" icon-name="house" :shortcut-key="wavyLineShortcutKey"
+        <note-action v-if="isWavy" title="波浪线" type="wavy" icon-name="house" :shortcut-key="wavyLineShortcutKey"
                      :colors="wavyLineColors":last-used="wavyLineLastUsed" is-dropdown
                      @action-color-selected="selectColor" />
-        <note-action title="直线" type="straight" icon-name="house" :shortcut-key="straightLineShortcutKey"
+        <note-action v-if="isStraight" title="直线" type="straight" icon-name="house" :shortcut-key="straightLineShortcutKey"
                      :colors="straightLineColors" :last-used="straightLineLastUsed" is-dropdown
                      @action-color-selected="selectColor" />
-        <note-action title="写想法" type="idea" icon-name="edit" @action-idea-written="showIdeaWrite" />
-        <note-action title="知易" type="ai" icon-name="magic-stick" />
-        <note-action title="清除" type="clear" icon-name="delete" :shortcut-key="clearNoteShortcutKey" @action-clear="clearSigns" />
+        <note-action v-if="isIdea" title="写想法" type="idea" icon-name="edit" @action-idea-written="showIdeaWrite" />
+        <note-action v-if="isAi" title="知易" type="ai" icon-name="magic-stick" />
+        <note-action v-if="isClear" title="清除" type="clear" icon-name="delete" :shortcut-key="clearNoteShortcutKey"
+                     @action-clear="clearSigns" />
       </div>
     </el-popover>
     <idea-write :visible="ideaWriteVisible" @idea-written="writeIdea" />
@@ -55,53 +55,99 @@ export default {
     notes: {
       type: Array,
       default: () => []
-    }
-  },
-  data() {
-    return {
-      visible: false,
-      backgroundColors: [
+    },
+    isCopy: {
+      type: Boolean,
+      default: true
+    },
+    isBg: {
+      type: Boolean,
+      default: true
+    },
+    isWavy: {
+      type: Boolean,
+      default: true
+    },
+    isStraight: {
+      type: Boolean,
+      default: true
+    },
+    isClear: {
+      type: Boolean,
+      default: true
+    },
+    isIdea: {
+      type: Boolean,
+      default: true
+    },
+    isAi: {
+      type: Boolean,
+      default: true
+    },
+    backgroundColors: {
+      type: Array,
+      default: () =>[
         {name: '红', val: '#FF00FF'},
         {name: '蓝', val: '#87CEFA'},
         {name: '绿', val: '#90EE90'},
         {name: '黄', val: '#FFFFE0'},
         {name: '紫', val: '#EE82EE'},
         {name: '粉', val: '#FFB6C1'}
-      ],
-      wavyLineColors: [
+      ]
+    },
+    wavyLineColors: {
+      type: Array,
+      default: () => [
         {name: '红', val: '#FF0000'},
         {name: '蓝', val: '#0000FF'},
         {name: '绿', val: '#008000'},
         {name: '黄', val: '#FFFF00'},
         {name: '紫', val: '#800080'},
         {name: '粉', val: '#FF1493'}
-      ],
-      straightLineColors: [
+      ]
+    },
+    straightLineColors: {
+      type: Array,
+      default: () => [
         {name: '红', val: '#FF0000'},
         {name: '蓝', val: '#0000FF'},
         {name: '绿', val: '#008000'},
         {name: '黄', val: '#FFFF00'},
         {name: '紫', val: '#800080'},
         {name: '粉', val: '#FF1493'}
-      ],
-      copyTextShortcutKey: 'Ctrl+Shift+C',
-      backgroundShortcutKey: 'Ctrl+Shift+H',
-      wavyLineShortcutKey: 'Ctrl+Shift+W',
-      straightLineShortcutKey: 'Ctrl+Shift+S',
-      clearNoteShortcutKey: 'Ctrl+Shift+C',
-      backgroundLastUsed: {
-        name: '红',
-        val: '#FF00FF'
-      },
-      wavyLineLastUsed: {
-        name: '红',
-        val: '#FF0000'
-      },
-      straightLineLastUsed: {
-        name: '红',
-        val: '#FF0000'
-      },
-      dottedLineColor: '#A9A9A9',
+      ]
+    },
+    copyTextShortcutKey: {
+      type: String,
+      default: 'Ctrl+Shift+C'
+    },
+    backgroundShortcutKey: {
+      type: String,
+      default: 'Ctrl+Shift+H'
+    },
+    wavyLineShortcutKey: {
+      type: String,
+      default: 'Ctrl+Shift+L'
+    },
+    straightLineShortcutKey: {
+      type: String,
+      default: 'Ctrl+Shift+R'
+    },
+    clearNoteShortcutKey: {
+      type: String,
+      default: 'Ctrl+Shift+J'
+    },
+    dottedLineColor: {
+      type: String,
+      default: '#A9A9A9'
+    }
+  },
+  data() {
+    return {
+      visible: false,
+      backgroundLastUsed: this.backgroundColors[0],
+      wavyLineLastUsed: this.wavyLineColors[0],
+      straightLineLastUsed: this.straightLineColors[0],
       signs: [],
       ideas: [],
       currentIdeas: [],
@@ -123,20 +169,25 @@ export default {
     }
   },
   watch: {
-    hasPopup(val) {
-      setTimeout(() => {
-        if (val) {
-          console.log('ideaListVisible: ', val);
-          console.log('ideaListVisible: ', new Date());
-          document.removeEventListener('mouseup', this.handleSelection);
-          document.removeEventListener('mousedown', this.handleClick);
-        } else {
-          console.log('ideaListVisible: ', val);
-          console.log('ideaListVisible: ', new Date());
-          document.addEventListener('mouseup', this.handleSelection);
-          document.addEventListener('mousedown', this.handleClick);
-        }
-      }, 500);
+    // hasPopup(val) {
+    //   setTimeout(() => {
+    //     if (val) {
+    //       console.log('ideaListVisible: ', val);
+    //       console.log('ideaListVisible: ', new Date());
+    //       document.removeEventListener('mouseup', this.handleSelection);
+    //       document.removeEventListener('mousedown', this.handleClick);
+    //     } else {
+    //       console.log('ideaListVisible: ', val);
+    //       console.log('ideaListVisible: ', new Date());
+    //       document.addEventListener('mouseup', this.handleSelection);
+    //       document.addEventListener('mousedown', this.handleClick);
+    //     }
+    //   }, 500);
+    // },
+    hasPopup(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.lastPopupChangeTime = Date.now();
+      }
     },
     ranges: {
       handler(val) {
@@ -153,17 +204,113 @@ export default {
     }
   },
   mounted() {
-    this.initNotes();
+    console.log('为何要触发！！！！！~~~~~~~~');
+    this.$nextTick(() => {
+      this.initNotes();
+    });
     document.addEventListener('mouseup', this.handleSelection);
     document.addEventListener('mousedown', this.handleClick);
+    document.addEventListener('keydown', this.handleKeyDown);
   },
   beforeDestroy() {
     document.removeEventListener('mouseup', this.handleSelection);
     document.removeEventListener('mousedown', this.handleClick);
+    document.removeEventListener('keydown', this.handleKeyDown);
   },
   methods: {
+    handleKeyDown(event) {
+      if (this.textNodes && this.textNodes.length === 0) {
+        return;
+      }
+      console.log('note-adder: event: ', event);
+      const pressedKeys = [];
+      // 检查是否同时按下了 Ctrl 键（在大多数浏览器中，Meta 键也适用于 Mac 的 Command 键）
+      const isCtrlPressed = event.ctrlKey || event.metaKey;
+      if (isCtrlPressed) {
+        pressedKeys.push('CTRL');
+      }
+      const isAltPressed = event.altKey;
+      if (isAltPressed) {
+        pressedKeys.push('ALT');
+      }
+      const isShiftPressed = event.shiftKey;
+      if (isShiftPressed) {
+        pressedKeys.push('SHIFT');
+      }
+      const key = event.key;
+      if (key) {
+        pressedKeys.push(key.toUpperCase());
+      }
+      console.log('note-adder: handleKeyDown: pressedKeys: ', pressedKeys);
+      const copyTextShortcutKeys = this.copyTextShortcutKey.split('+').map(key => key && key.toUpperCase());
+      console.log('note-adder: handleKeyDown: copyTextShortcutKeys: ', copyTextShortcutKeys);
+      const backgroundShortcutKeys = this.backgroundShortcutKey.split('+').map(key => key && key.toUpperCase());
+      console.log('note-adder: handleKeyDown: backgroundShortcutKeys: ', backgroundShortcutKeys);
+      const wavyLineShortcutKeys = this.wavyLineShortcutKey.split('+').map(key => key && key.toUpperCase());
+      console.log('note-adder: handleKeyDown: wavyLineShortcutKeys: ', wavyLineShortcutKeys);
+      const straightLineShortcutKeys = this.straightLineShortcutKey.split('+').map(key => key && key.toUpperCase());
+      console.log('note-adder: handleKeyDown: straightLineShortcutKeys: ', straightLineShortcutKeys);
+      const clearNoteShortcutKeys = this.clearNoteShortcutKey.split('+').map(key => key && key.toUpperCase());
+      console.log('note-adder: handleKeyDown: clearNoteShortcutKeys: ', clearNoteShortcutKeys);
+      if (pressedKeys.length === 1 && (pressedKeys[0] === copyTextShortcutKeys[0] ||
+          pressedKeys[0] === backgroundShortcutKeys[0] ||
+          pressedKeys[0] === wavyLineShortcutKeys[0] ||
+          pressedKeys[0] === straightLineShortcutKeys[0] ||
+          pressedKeys[0] === clearNoteShortcutKeys[0])) {
+        event.preventDefault(); // 阻止默认行为，如页面保存
+        console.log('note-adder: handleKeyDown: ', pressedKeys[0]);
+      }
+      if (pressedKeys.length > 1) {
+        let isCopy = copyTextShortcutKeys.length === pressedKeys.length;
+        let isBg = backgroundShortcutKeys.length === pressedKeys.length;
+        let isWavy = wavyLineShortcutKeys.length === pressedKeys.length;
+        let isStraight = straightLineShortcutKeys.length === pressedKeys.length;
+        let isClear = clearNoteShortcutKeys.length === pressedKeys.length;
+        for (let i = 0; i < copyTextShortcutKeys.length; i++) {
+          if (isCopy && !pressedKeys.includes(copyTextShortcutKeys[i])) {
+            isCopy = false;
+          }
+        }
+        for (let i = 0; i < backgroundShortcutKeys.length; i++) {
+          if (isBg && !pressedKeys.includes(backgroundShortcutKeys[i])) {
+            isBg = false;
+          }
+        }
+        for (let i = 0; i < wavyLineShortcutKeys.length; i++) {
+          if (isWavy && !pressedKeys.includes(wavyLineShortcutKeys[i])) {
+            isWavy = false;
+          }
+        }
+        for (let i = 0; i < straightLineShortcutKeys.length; i++) {
+          if (isStraight && !pressedKeys.includes(straightLineShortcutKeys[i])) {
+            isStraight = false;
+          }
+        }
+        for (let i = 0; i < clearNoteShortcutKeys.length; i++) {
+          if (isClear && !pressedKeys.includes(clearNoteShortcutKeys[i])) {
+            isClear = false;
+          }
+        }
+        if (isCopy) {
+          event.preventDefault();
+          this.copyText();
+        } else if (isBg) {
+          event.preventDefault();
+          this.mark(3, this.backgroundLastUsed.val);
+        } else if (isWavy) {
+          event.preventDefault();
+          this.mark(1, this.wavyLineLastUsed.val);
+        } else if (isStraight) {
+          event.preventDefault();
+          this.mark(2, this.straightLineLastUsed.val);
+        } else if (isClear) {
+          event.preventDefault();
+          this.mark(0);
+        }
+      }
+    },
     handleSelection() {
-      if (!this.visible) {
+      if (!this.visible && !this.hasPopup) {
         requestAnimationFrame(() => {
           const selection = window.getSelection();
           if (selection && selection.type) {
@@ -173,7 +320,7 @@ export default {
             if (selection.type === 'Range' && selection.rangeCount > 0 && !selection.isCollapsed &&
                 selection.toString().length > 0 && selection.toString().trim() !== '' &&
                 selection.toString() !== '{}') {
-              console.log('63  selection.getRangeAt(0): ', selection.getRangeAt(0));
+              // console.log('63  selection.getRangeAt(0): ', selection.getRangeAt(0));
               this.range = selection.getRangeAt(0).cloneRange();
               // 校验信息
               const {commonAncestorContainer, startContainer, endContainer} = selection.getRangeAt(0);
@@ -201,6 +348,9 @@ export default {
               this.visible = true;
               console.log('165  this.visible: ', this.visible);
             } else if (selection.type === 'Caret') {
+              if (this.lastPopupChangeTime && Date.now() - this.lastPopupChangeTime < 500) {
+                return;
+              }
               // 处理鼠标点击选中文本
               console.log('note-adder: handleSelection: Caret');
               console.log('handleSelection: ', new Date());
@@ -281,6 +431,7 @@ export default {
       this.visible = false;
     },
     showIdeaWrite() {
+      console.log('note-adder: showIdeaWrite');
       this.ideaWriteVisible = true;
       this.visible = false;
     },

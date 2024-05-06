@@ -1,10 +1,11 @@
 <template>
   <el-popover
       ref="noteIdeaWritePopover"
-      placement="top"
+      placement="bottom"
       trigger="manual"
       width="600"
       :value="computedVisible"
+      class="note-idea-write-popover"
   >
     <el-input
         type="textarea"
@@ -36,6 +37,7 @@ export default {
   },
   computed: {
     computedVisible() {
+      console.log('idea-write computedVisible', this.visible);
       return this.visible;
     },
     confirmDisabled() {
@@ -60,7 +62,8 @@ export default {
   methods: {
     handleClick(event) {
       if (this.computedVisible) {
-        // event.preventDefault();
+        event.preventDefault();
+        event.stopPropagation();
         // 判断点击事件是否发生在Popover外部
         const popoverEl = this.$refs.noteIdeaWritePopover.$el;
         if (!popoverEl.contains(event.target)) {
@@ -81,6 +84,10 @@ export default {
 </script>
 
 <style scoped>
+.note-idea-write-popover {
+  position: relative;
+  user-select: none;
+}
 .idea-write-footer {
   float: right;
   padding-top: 10px;

@@ -1,40 +1,39 @@
 <template>
-  <div>
-    <el-popover
-        ref="noteIdeaListPopover"
-        placement="bottom"
-        trigger="manual"
-        width="600"
-        :value="computedVisible"
-    >
-      <div v-for="(note, index) in allNotes" :key="note.id">
-        <div class="note-item">
-          <div class="note-header">
-            <div class="note-title">{{ note.title }}</div>
-            <div v-if="note.isEditable !== true">
-              <el-button type="text" icon="el-icon-edit" @click="editIdea(note.id)"></el-button>
-              <el-button type="text" icon="el-icon-delete" class="note-delete-btn" @click="deleteIdea(note.id)"></el-button>
-            </div>
-          </div>
-          <div class="note-body">
-            <el-input
-                type="textarea"
-                :rows="2"
-                placeholder="请输入内容"
-                v-model="note.content"
-                :disabled="note.isEditable !== true"
-            >
-            </el-input>
-            <div v-if="note.isEditable === true" class="note-edit-btns">
-              <el-button class="note-edit-cancel-btn" type="text" icon="el-icon-error" @click="cancelEditIdea(note.id)"></el-button>
-              <el-button :disabled="note.content === ''" class="note-edit-confirm-btn" type="text" icon="el-icon-success" @click="confirmEditIdea(note.id)"></el-button>
-            </div>
+  <el-popover
+      ref="noteIdeaListPopover"
+      placement="bottom"
+      trigger="manual"
+      width="600"
+      :value="computedVisible"
+      class="note-idea-list-popover"
+  >
+    <div v-for="(note, index) in allNotes" :key="note.id">
+      <div class="note-item">
+        <div class="note-header">
+          <div class="note-title">{{ note.title }}</div>
+          <div v-if="note.isEditable !== true">
+            <el-button type="text" icon="el-icon-edit" @click="editIdea(note.id)"></el-button>
+            <el-button type="text" icon="el-icon-delete" class="note-delete-btn" @click="deleteIdea(note.id)"></el-button>
           </div>
         </div>
-        <el-divider v-if="index < notes.length - 1"></el-divider>
+        <div class="note-body">
+          <el-input
+              type="textarea"
+              :rows="2"
+              placeholder="请输入内容"
+              v-model="note.content"
+              :disabled="note.isEditable !== true"
+          >
+          </el-input>
+          <div v-if="note.isEditable === true" class="note-edit-btns">
+            <el-button class="note-edit-cancel-btn" type="text" icon="el-icon-error" @click="cancelEditIdea(note.id)"></el-button>
+            <el-button :disabled="note.content === ''" class="note-edit-confirm-btn" type="text" icon="el-icon-success" @click="confirmEditIdea(note.id)"></el-button>
+          </div>
+        </div>
       </div>
-    </el-popover>
-  </div>
+      <el-divider v-if="index < notes.length - 1"></el-divider>
+    </div>
+  </el-popover>
 </template>
 
 <script>
@@ -80,6 +79,7 @@ export default {
   },
   computed: {
     computedVisible() {
+      console.log('idea-list computedVisible', this.visible);
       return this.visible;
     }
   },
@@ -98,16 +98,10 @@ export default {
       deep: true
     }
   },
-  // mounted() {
-  //   document.addEventListener('mousedown', this.handleClick);
-  // },
-  // beforeDestroy() {
-  //   document.removeEventListener('mousedown', this.handleClick);
-  // },
   methods: {
     handleClick(event) {
       if (this.computedVisible) {
-        // event.preventDefault();
+        event.preventDefault();
         event.stopPropagation();
         // 判断点击事件是否发生在Popover外部
         console.log('this.$refs.noteIdeaListPopover: ', this.$refs.noteIdeaListPopover);
@@ -183,6 +177,10 @@ export default {
 </script>
 
 <style scoped>
+.note-idea-list-popover {
+  position: relative;
+  user-select: none;
+}
 .note-header,.note-body {
   display: flex;
 }
