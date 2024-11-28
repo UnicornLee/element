@@ -1,14 +1,270 @@
 @import "mixins/mixins";
-@import "common/var";
+@import "common/variables";
+
+::selection {
+  background: rgba(174, 174, 174, 0.5); /* 非Firefox浏览器选中背景色 */
+}
+
+/* 对于Firefox浏览器，需要使用私有属性 */
+::-moz-selection {
+  background: rgba(174, 174, 174, 0.5); /* Firefox选中背景色 */
+}
+
+.note-action-popover {
+  display: flex;
+  align-items: unset;
+  .el-dialog {
+    width: unset;
+    height: 61px;
+    margin: 4px !important;
+    .el-dialog__header {
+      display: none;
+    }
+    .el-dialog__body {
+      user-select: none;
+      padding: unset;
+    }
+  }
+}
+.note-actions {
+  display: flex;
+  height: 61px;
+  .el-divider.el-divider--vertical {
+    height: unset;
+    margin: 18.5px 0;
+  }
+}
+.group-title {
+  font-size: 12px;
+  color: $--el-color-text-regular;
+}
+.shortcut-key {
+  font-size: 12px;
+  color: $--el-color-text-regular;
+}
+.color-item {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+  div:first-child {
+    height: 20px;
+    width: 20px;
+    border-radius: 10px;
+    text-align: center;
+    svg {
+      margin-top: 2px;
+    }
+  }
+}
+.color-item span {
+  margin-right: 10px;
+}
+.note-action {
+  display: flex;
+  width: max-content;
+  padding: 0 16px;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  cursor: pointer;
+  .note-action-icon-title {
+    height:100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .note-action-dropdown {
+    width: 24px;
+    height:100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  &:hover {
+    background: #F5F7FA;
+    .note-action-copy,.note-action-idea,.note-action-clear {
+      svg {
+        fill: $--el-color-primary;
+      }
+    }
+  }
+  &.is-dropdown {
+    cursor: default;
+    padding: unset;
+    margin: 0 10px;
+  }
+  &.is-dropdown {
+    &:hover {
+      background: unset;
+    }
+    .note-action-icon-title:hover, .note-action-dropdown:hover {
+      background: #F5F7FA;
+      cursor: pointer;
+    }
+    .note-action-dropdown:hover {
+      color: $--el-color-primary;
+    }
+  }
+}
+
+.note-action-icon-title {
+  text-align: center;
+}
+.note-action-copy,.note-action-idea,.note-action-clear {
+  svg {
+    fill: $--el-color-text-primary;
+  }
+  &:hover {
+    svg {
+      fill: $--el-color-primary;
+    }
+  }
+}
+.note-action-background {
+}
+.note-action-straight {
+}
+.note-action-wavy {
+}
+.idea-write-footer {
+  padding-top: 10px;
+  display: flex;
+  div {
+    margin-left: auto;
+  }
+}
+.note-idea-write-popover{
+  align-items: end;
+  .el-dialog{
+    padding-bottom:16px;
+  }
+}
+.note-idea-list-popover{
+  align-items: end;
+  .el-dialog{
+    padding-bottom:18px;
+  }
+}
+.note-idea-list-popover, .note-idea-write-popover {
+  .el-dialog {
+    width: 800px;
+    box-shadow: 1px 4px 8px 0 rgba(0, 0, 0, 0.15), 2px -5px 12px 0 rgba(0, 0, 0, 0.15);
+    .el-dialog__header {
+      padding: unset;
+      border-bottom: none;
+      background: unset;
+      .el-dialog__headerbtn {
+        display: none;
+      }
+    }
+    .el-dialog__body {
+      padding: unset;
+      max-height: var(--idea-list-body-max-height) !important;
+    }
+  }
+  &.width-setting {
+    .el-dialog {
+      width: var(--idea-list-width);
+    }
+  }
+  &.position-setting {
+    align-items: end;
+    .el-dialog {
+      height: max-content;
+    }
+  }
+  .note-idea-title {
+    position:absolute;
+    right:0;
+    .note-idea-close {
+      width: 26px;
+      height: 22px;
+      margin-left: auto;
+      svg {
+        fill: $--el-color-info;
+        &:hover {
+          cursor: pointer;
+          fill: $--el-color-primary;
+        }
+      }
+    }
+  }
+  .note-idea-content {
+    padding: 18px 24px 0 24px;
+  }
+  .el-divider.el-divider--horizontal {
+    margin: 10px 24px;
+    width: unset;
+    background-color: #EEE;
+  }
+}
+.note-header {
+  display: flex;
+  align-items: center;
+  color: $--el-color-text-regular;
+  margin-bottom: 10px;
+}
+.note-title {
+  width: calc(var(--idea-list-width) - 48px - 96px - 41px - 16px - 18px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0 10px 0 6px;
+  color:$--el-color-info;
+  font-size: 14px;
+}
+.note-time {
+  color:$--el-color-info;
+  font-size: 14px;
+  margin-left:20px;
+}
+.note-operation {
+  width: 41px;
+  display: flex;
+  margin-top: 3px;
+  justify-content: space-between;
+  margin-left: auto;
+  svg {
+    fill: #666;
+    &:hover {
+      cursor: pointer;
+      fill: $--el-color-primary;
+    }
+  }
+}
+.note-body {
+  color: $--el-color-text-primary;
+  .textarea-readonly {
+    textarea {
+      background-color: unset !important;
+      border: none !important;
+      color: unset !important;
+      resize: none !important;
+      padding: unset !important;
+    }
+  }
+}
+.note-edit-btns {
+  margin-top: 10px;
+  display: flex;
+  div {
+    margin-left: auto;
+  }
+}
 
 @include b(note-action) {
   position:relative;
+  margin-bottom: 4px;
   @include e(straight-line) {
     //border-bottom:2px solid;
     //border-color:var(--straight-line-color);
     position:relative;
     text-decoration: underline;
     text-decoration-style: solid;
+    text-decoration-thickness: 2px;
     text-decoration-color:var(--straight-line-color);
   }
   @include e(mark-bg) {
@@ -24,9 +280,9 @@
     display:inline-block;
     cursor: pointer;
   }
-  @include e(dashed-line) {
+  @include e(idea-line) {
     cursor: pointer;
-    border-bottom:4px dotted;
-    border-color:var(--dotted-line-color);
+    border-bottom:4px dashed;
+    border-color:var(--idea-line-color);
   }
 }

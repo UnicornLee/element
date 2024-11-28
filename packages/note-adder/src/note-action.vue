@@ -1,24 +1,96 @@
 <template>
   <div>
-    <div class="note-action" @click.prevent="actionClick">
-      <div class="note-action-icon-title">
-        <div v-if="type === 'background'">
-          <span class="note-action-background" :style="{backgroundColor: lastUsed.val}">A</span>
+    <div v-if="isDropdown" class="note-action is-dropdown">
+      <div class="note-action-icon-title" @click="useLastUsedColor">
+        <div>
+          <div v-if="type === 'background'" class="note-action-background">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="20" height="20" rx="2" :fill="lastUsed"/>
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12.0787 10.3581L9.85431 4.86257L7.70949 10.3581H12.0787ZM12.5847 11.6081L14.5769 16.5301C14.7064 16.8501 15.0708 17.0045 15.3907 16.875C15.7107 16.7455 15.8651 16.3811 15.7356 16.0611L10.718 3.66486C10.3998 2.87857 9.28408 2.88555 8.97568 3.67575L4.26151 15.7546C4.13601 16.0761 4.29494 16.4386 4.6165 16.5641C4.93806 16.6896 5.30046 16.5306 5.42596 16.2091L7.22163 11.6081H12.5847Z" fill="#333333"/>
+            </svg>
+          </div>
+          <div v-else-if="type === 'wavy'" class="note-action-wavy">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g clip-path="url(#clip0_2887_9574)">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12.235 8.43746L10.0106 2.94192L7.8658 8.43746H12.235ZM12.741 9.68746L14.7332 14.6095C14.8627 14.9294 15.2271 15.0838 15.547 14.9543C15.867 14.8248 16.0214 14.4604 15.8919 14.1405L10.8743 1.7442C10.5561 0.957913 9.44039 0.964897 9.13199 1.7551L4.41782 13.8339C4.29232 14.1555 4.45126 14.5179 4.77281 14.6434C5.09437 14.7689 5.45678 14.61 5.58227 14.2884L7.37795 9.68746H12.741Z" fill="#333333"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M14.0361 18.2971C13.7762 18.5234 13.4146 18.7409 12.9465 18.7409C12.2403 18.7409 11.8725 18.2333 11.672 17.9566L11.6556 17.934L11.6544 17.9324C11.4425 17.6407 11.2977 17.4415 11.0578 17.3113L11.0516 17.3168C10.9545 17.4046 10.8651 17.5224 10.7353 17.6933C10.6881 17.7555 10.6353 17.8249 10.5751 17.9023C10.3897 18.1405 10.1127 18.4788 9.73536 18.6658C9.53131 18.767 9.29372 18.8271 9.02963 18.8075C8.76895 18.7881 8.52196 18.694 8.2907 18.5476L8.22832 18.5081L8.17685 18.4552C7.66284 17.9264 7.3295 17.6599 7.11263 17.5385C7.02765 17.491 6.97829 17.4749 6.95409 17.4701C6.94336 17.4771 6.92398 17.4911 6.89444 17.518C6.84076 17.5668 6.78285 17.6298 6.69425 17.7276L6.68056 17.7427C6.5175 17.9229 6.28118 18.1839 5.94745 18.3952C5.21122 18.8613 4.41705 18.5588 3.90803 18.2465C3.36956 17.9162 2.90442 17.4355 2.63454 17.0938C2.42061 16.8229 2.46678 16.4299 2.73767 16.2159C3.00855 16.002 3.40158 16.0482 3.61551 16.3191C3.82579 16.5853 4.18565 16.9503 4.56167 17.181C4.96713 17.4298 5.17692 17.4036 5.2788 17.3391C5.45941 17.2247 5.59573 17.0784 5.76786 16.8884C5.77127 16.8846 5.77474 16.8808 5.77827 16.8769C5.78396 16.8706 5.78982 16.8641 5.79584 16.8574C5.93837 16.6989 6.17262 16.4385 6.48804 16.3084C6.90242 16.1376 7.32103 16.2227 7.72299 16.4477C8.08932 16.6526 8.50698 17.0071 9.0136 17.5229C9.0754 17.5552 9.11034 17.56 9.12226 17.5609C9.13388 17.5618 9.14899 17.5614 9.18024 17.5459C9.27355 17.4996 9.39755 17.3801 9.58865 17.1346C9.61813 17.0967 9.6508 17.0534 9.68608 17.0067C9.83102 16.8147 10.02 16.5644 10.213 16.3898C10.3441 16.2713 10.523 16.1413 10.7517 16.0765C10.9988 16.0065 11.2565 16.0261 11.5016 16.137C12.0948 16.4052 12.4213 16.8585 12.6279 17.1453C12.6351 17.1554 12.6424 17.1655 12.6494 17.1752C12.6553 17.1833 12.6611 17.1913 12.6668 17.1992C12.8873 17.5026 12.926 17.4947 12.9425 17.4914L12.945 17.491L12.9465 17.4909C13.0021 17.4909 13.0825 17.4699 13.2154 17.3543C13.3549 17.2328 13.4849 17.0682 13.655 16.8528L13.6794 16.8219C13.8261 16.6359 14.039 16.3663 14.2946 16.1963C14.4399 16.0997 14.631 16.0119 14.8622 16C15.0999 15.9878 15.3183 16.0589 15.507 16.1784C16.1948 16.6138 17.002 17.3605 17.3158 17.6728C17.5605 17.9162 17.5615 18.312 17.3181 18.5567C17.0746 18.8014 16.6789 18.8024 16.4342 18.5589C16.1516 18.2778 15.4784 17.6598 14.9234 17.2898C14.8621 17.3489 14.7775 17.4483 14.6482 17.612L14.6134 17.6562C14.4653 17.8444 14.2675 18.0957 14.0361 18.2971ZM6.93528 17.4692C6.93528 17.4692 6.93882 17.4677 6.94805 17.4691C6.94026 17.4705 6.93528 17.4692 6.93528 17.4692Z" :fill="lastUsed"/>
+              </g>
+              <defs>
+                <clipPath id="clip0_2887_9574">
+                  <rect width="20" height="20" fill="white"/>
+                </clipPath>
+              </defs>
+            </svg>
+          </div>
+          <div v-else-if="type === 'straight'" class="note-action-straight">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M2.5 17.5C2.5 17.1548 2.77982 16.875 3.125 16.875H16.875C17.2202 16.875 17.5 17.1548 17.5 17.5C17.5 17.8452 17.2202 18.125 16.875 18.125H3.125C2.77982 18.125 2.5 17.8452 2.5 17.5Z" :fill="lastUsed"/>
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12.2349 8.43746L10.0105 2.94192L7.86568 8.43746H12.2349ZM12.7408 9.68746L14.7331 14.6095C14.8626 14.9294 15.227 15.0838 15.5469 14.9543C15.8669 14.8248 16.0213 14.4604 15.8918 14.1405L10.8742 1.7442C10.556 0.957913 9.44027 0.964897 9.13187 1.7551L4.4177 13.8339C4.2922 14.1555 4.45113 14.5179 4.77269 14.6434C5.09425 14.7689 5.45665 14.61 5.58215 14.2884L7.37783 9.68746H12.7408Z" fill="#404040"/>
+            </svg>
+          </div>
+          <div v-else :class="['el-icon-' + iconName]" style="padding-right: 10px;"></div>
+          <div>{{ title }}</div>
         </div>
-        <div v-else-if="type === 'wavy'">
-          <span class="note-action-wavy" :style="{textDecorationColor: lastUsed.val}">A</span>
-        </div>
-        <div v-else-if="type === 'straight'">
-          <span class="note-action-straight" :style="{textDecorationColor: lastUsed.val}">A</span>
-        </div>
-        <div v-else :class="['el-icon-' + iconName]" style="font-size: 18px;"></div>
-        <div>{{ title }}</div>
       </div>
-      <div v-if="isDropdown" class="el-icon-arrow-down note-action-dropdown">
+      <div class="note-action-dropdown" @click.prevent="actionClick">
+        <div class="el-icon-arrow-down"></div>
       </div>
     </div>
-    <note-color-select :visible="colorSelectVisible" :lastUsed="lastUsed" :shortcut-key="shortcutKey"
-                       :colors="colors" @color-selected="selectColor" />
+    <div v-else class="note-action" @click.prevent="actionClick">
+      <div class="note-action-icon-title">
+        <div>
+          <div v-if="type === 'copy'" class="note-action-copy">
+            <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M2.1875 6.42578C2.1875 5.46576 2.96576 4.6875 3.92578 4.6875H13.5742C14.5342 4.6875 15.3125 5.46576 15.3125 6.42578V16.0742C15.3125 17.0342 14.5342 17.8125 13.5742 17.8125H3.92578C2.96576 17.8125 2.1875 17.0342 2.1875 16.0742V6.42578ZM3.92578 5.9375C3.65611 5.9375 3.4375 6.15611 3.4375 6.42578V16.0742C3.4375 16.3439 3.65611 16.5625 3.92578 16.5625H13.5742C13.8439 16.5625 14.0625 16.3439 14.0625 16.0742V6.42578C14.0625 6.15611 13.8439 5.9375 13.5742 5.9375H3.92578Z" />
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M5.85938 3.4375C5.55734 3.4375 5.3125 3.68234 5.3125 3.98438V5H4.0625V3.98438C4.0625 2.99199 4.86699 2.1875 5.85938 2.1875H16.0156C17.008 2.1875 17.8125 2.99199 17.8125 3.98438V14.1406C17.8125 15.133 17.008 15.9375 16.0156 15.9375H14.8438V14.6875H16.0156C16.3177 14.6875 16.5625 14.4427 16.5625 14.1406V3.98438C16.5625 3.68234 16.3177 3.4375 16.0156 3.4375H5.85938Z" />
+            </svg>
+          </div>
+          <div v-else-if="type === 'idea'" class="note-action-idea">
+            <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M10.1562 1.25C6.28125 1.25 3.125 4.40625 3.125 8.28125C3.125 10.8438 4.5 13.1562 6.71875 14.4062V15C6.71875 15.6875 7.28125 16.25 7.96875 16.25H12.0312C12.7188 16.25 13.2812 15.6875 13.2812 15V14.5938C15.6562 13.4062 17.1875 10.9688 17.1875 8.28125C17.1875 4.40625 14.0312 1.25 10.1562 1.25ZM12.4062 13.5938L12.0312 13.75V15H7.96875V13.6562L7.625 13.5C5.625 12.5 4.375 10.5 4.375 8.28125C4.375 5.09375 6.96875 2.5 10.1562 2.5C13.3438 2.5 15.9375 5.09375 15.9375 8.28125C15.9375 10.5938 14.5625 12.6875 12.4062 13.5938ZM12.6562 17.5H7.34375V18.75H12.6562V17.5ZM10.9838 6.60406C11.1794 6.31962 11.1073 5.93051 10.8229 5.73496C10.5384 5.5394 10.1493 5.61146 9.95376 5.8959L8.57157 7.90636C8.14392 8.5284 8.58926 9.37498 9.34411 9.37498H10.2494L9.04622 10.8559C8.82855 11.1238 8.86927 11.5174 9.13717 11.7351C9.40507 11.9527 9.79869 11.912 10.0164 11.6441L11.6336 9.65366C12.1314 9.04099 11.6954 8.12498 10.906 8.12498H9.93818L10.9838 6.60406Z" />
+            </svg>
+          </div>
+          <div v-else-if="type === 'ai'">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path opacity="0.6" d="M2.5 3.33337H18.3333V15H9.16667L5.83333 16.6667L5.41667 15H2.5V3.33337Z" fill="#FCFEFF"/>
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M1.30212 3.04688C1.30212 2.7017 1.58195 2.42188 1.92712 2.42188H18.073C18.4181 2.42188 18.698 2.7017 18.698 3.04688V15.1563C18.698 15.5014 18.4181 15.7813 18.073 15.7813H9.74394L5.83945 17.7335C5.6457 17.8304 5.41562 17.82 5.23135 17.7061C5.04709 17.5923 4.93494 17.3911 4.93494 17.1745V15.7813H1.92712C1.58195 15.7813 1.30212 15.5014 1.30212 15.1563V3.04688ZM2.55212 3.67188V14.5313H5.55994C5.90512 14.5313 6.18494 14.8111 6.18494 15.1563V16.1632L9.31689 14.5972C9.40367 14.5538 9.49937 14.5313 9.5964 14.5313H17.448V3.67188H2.55212Z" fill="url(#paint0_linear_2887_8607)"/>
+              <path d="M7.33143 5H8.77172L11.7281 13.125H10.3744L9.67054 11.0881H6.4326L5.7287 13.125H4.37504L7.33143 5ZM6.81162 9.99562H9.29152L8.07864 6.43382H8.03533L6.81162 9.99562Z" fill="url(#paint1_linear_2887_8607)"/>
+              <path d="M12.483 5H13.75V13.125H12.483V5Z" fill="url(#paint2_linear_2887_8607)"/>
+              <defs>
+                <linearGradient id="paint0_linear_2887_8607" x1="18.3334" y1="1.25" x2="2.50004" y2="20.8333" gradientUnits="userSpaceOnUse">
+                  <stop offset="0.263542" stop-color="#2BCAFF"/>
+                  <stop offset="0.836458" stop-color="#4870FF"/>
+                </linearGradient>
+                <linearGradient id="paint1_linear_2887_8607" x1="18.3334" y1="1.25" x2="2.50004" y2="20.8333" gradientUnits="userSpaceOnUse">
+                  <stop offset="0.263542" stop-color="#2BCAFF"/>
+                  <stop offset="0.836458" stop-color="#4870FF"/>
+                </linearGradient>
+                <linearGradient id="paint2_linear_2887_8607" x1="18.3334" y1="1.25" x2="2.50004" y2="20.8333" gradientUnits="userSpaceOnUse">
+                  <stop offset="0.263542" stop-color="#2BCAFF"/>
+                  <stop offset="0.836458" stop-color="#4870FF"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div v-else-if="type === 'clear'" class="note-action-clear">
+            <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.6562 16.3125L16.5625 10.5938C17.0937 10.4688 17.5 9.96875 17.5 9.375V7.5C17.5 6.8125 16.9375 6.25 16.25 6.25H11.875V3.4375C11.875 2.75 11.3125 2.1875 10.625 2.1875H9.37496C8.68746 2.1875 8.12496 2.75 8.12496 3.4375V6.25H3.74996C3.06246 6.25 2.49996 6.8125 2.49996 7.5V9.375C2.49996 9.96875 2.90621 10.4375 3.43746 10.5938L2.34371 16.3125C2.28121 16.6875 2.37496 17.0625 2.59371 17.3438C2.84371 17.625 3.18746 17.8125 3.56246 17.8125H16.4375C16.8125 17.8125 17.1562 17.6562 17.4062 17.3438C17.625 17.0625 17.7187 16.6875 17.6562 16.3125ZM3.74996 7.5H8.74996C9.09372 7.5 9.37496 7.21875 9.37496 6.875V3.4375H10.625V6.875C10.625 7.21875 10.9062 7.5 11.25 7.5H16.25V9.375H15.8125H4.18746H3.74996V7.5ZM13.125 16.5625V13.4375C13.125 13.0938 12.8437 12.8125 12.5 12.8125C12.1562 12.8125 11.875 13.0938 11.875 13.4375V16.5625H8.12496V13.4375C8.12496 13.0938 7.84372 12.8125 7.49996 12.8125C7.15621 12.8125 6.87496 13.0938 6.87496 13.4375V16.5625H3.56246L4.68746 10.625H15.2812L16.4062 16.5625H13.125Z" />
+            </svg>
+          </div>
+          <div v-else :class="['el-icon-' + iconName]" style="padding-right: 10px;"></div>
+          <div>{{ title }}</div>
+        </div>
+      </div>
+    </div>
+    <note-color-select
+        :visible="colorSelectVisible"
+        :lastUsed="lastUsed"
+        :is-shortcut-key-close="isShortcutKeyClose"
+        :shortcut-key="shortcutKey"
+        :type="type"
+        :colors="colors"
+        :selected-colors="selectedColors"
+        @color-selected="selectColor" />
   </div>
 </template>
 
@@ -47,30 +119,29 @@ export default {
     },
     colors: {
       type: Array,
-      items: {
-        type: Object,
-        properties: {
-          name: {
-            type: String,
-            default: ''
-          },
-          val: {
-            type: String,
-            default: ''
-          }
-        }
-      }
+      default: () => []
+    },
+    selectedColors: {
+      type: Array,
+      default: () => []
+    },
+    isShortcutKeyClose: {
+      type: Boolean,
+      default: true
     },
     shortcutKey: {
       type: String,
       default: ''
     },
     lastUsed: {
-      type: Object,
-      default: () => ({
-        name: '红',
-        val: 'red'
-      })
+      type: String,
+      default: ''
+    },
+    clickHandler: {
+      type: Function,
+      default: () => {
+        return () => {};
+      }
     }
   },
   data() {
@@ -85,56 +156,25 @@ export default {
   methods: {
     actionClick() {
       if (this.isDropdown) {
-        console.log('isDropdown');
         this.colorSelectVisible = true;
       } else {
         if (this.type === 'idea') {
           this.$emit('action-idea-written');
         } else if (this.type === 'clear') {
           this.$emit('action-clear');
+        } else {
+          this.clickHandler();
         }
       }
     },
-    selectColor(color) {
-      console.log('note-action: selectColor', JSON.stringify(color));
-      if (color) {
-        const type = this.type;
-        this.$emit('action-color-selected', {type, color});
-      }
+    selectColor(params) {
+      const type = this.type;
+      this.$emit('action-color-selected', {type, ...params});
       this.colorSelectVisible = false;
+    },
+    useLastUsedColor() {
+      this.$emit('action-color-selected', {type: this.type, color: this.lastUsed, actionClose: true, isColorSelect: true});
     }
   }
 };
 </script>
-
-<style scoped>
-.note-action {
-  display: flex;
-  width: 70px;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  cursor: pointer;
-  user-select: none;
-}
-
-.note-action-icon-title {
-  text-align: center;
-}
-
-.note-action-dropdown {
-  margin-left: 5px;
-}
-.note-action-background {
-  font-size: 18px;
-}
-.note-action-straight {
-  font-size: 18px;
-  text-decoration: underline;
-}
-.note-action-wavy {
-  font-size: 18px;
-  text-decoration: underline;
-  text-decoration-style: wavy;
-}
-</style>

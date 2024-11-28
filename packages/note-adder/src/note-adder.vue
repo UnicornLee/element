@@ -1,33 +1,57 @@
 <template>
   <div>
-    <el-popover
+    <el-dialog
         ref="noteActionPopover"
-        placement="top"
-        trigger="manual"
-        v-model="visible"
-        visible-arrow
+        id="noteActionPopover"
+        :visible.sync="visible"
         class="note-action-popover"
+        :modal="false"
     >
       <div class="note-actions">
-        <note-action v-if="isCopy" title="复制" type="copy" icon-name="document-copy" :shortcut-key="copyTextShortcutKey"
+        <note-action v-if="isCopy" title="复制" type="copy"
+                     :is-shortcut-key-close="isShortcutKeyClose"
+                     :shortcut-key="copyTextShortcutKey"
                      :click-handler="copyText" />
-        <note-action v-if="isBg" title="背景" type="background" icon-name="house" :shortcut-key="backgroundShortcutKey"
-                     :colors="backgroundColors" :last-used="backgroundLastUsed" is-dropdown
+        <note-action v-if="isBg" title="背景" type="background" is-dropdown
+                     :is-shortcut-key-close="isShortcutKeyClose"
+                     :shortcut-key="backgroundShortcutKey"
+                     :colors="backgroundColors"
+                     :selected-colors="selectedBgColors"
+                     :last-used="backgroundLastUsed"
                      @action-color-selected="selectColor" />
-        <note-action v-if="isWavy" title="波浪线" type="wavy" icon-name="house" :shortcut-key="wavyLineShortcutKey"
-                     :colors="wavyLineColors":last-used="wavyLineLastUsed" is-dropdown
+        <note-action v-if="isWavy" title="波浪线" type="wavy" is-dropdown
+                     :is-shortcut-key-close="isShortcutKeyClose"
+                     :shortcut-key="wavyLineShortcutKey"
+                     :colors="wavyLineColors"
+                     :selected-colors="selectedWavyLineColors"
+                     :last-used="wavyLineLastUsed"
                      @action-color-selected="selectColor" />
-        <note-action v-if="isStraight" title="直线" type="straight" icon-name="house" :shortcut-key="straightLineShortcutKey"
-                     :colors="straightLineColors" :last-used="straightLineLastUsed" is-dropdown
+        <note-action v-if="isStraight" title="直线" type="straight" is-dropdown
+                     :is-shortcut-key-close="isShortcutKeyClose"
+                     :shortcut-key="straightLineShortcutKey"
+                     :colors="straightLineColors"
+                     :selected-colors="selectedStraightLineColors"
+                     :last-used="straightLineLastUsed"
                      @action-color-selected="selectColor" />
-        <note-action v-if="isIdea" title="写想法" type="idea" icon-name="edit" @action-idea-written="showIdeaWrite" />
-        <note-action v-if="isAi" title="知易" type="ai" icon-name="magic-stick" />
-        <note-action v-if="isClear" title="清除" type="clear" icon-name="delete" :shortcut-key="clearNoteShortcutKey"
+        <note-action v-if="isIdea && isShortcutKeyClose" title="写想法" type="idea" @action-idea-written="showIdeaWrite" />
+        <el-tooltip v-if="isIdea && !isShortcutKeyClose" class="item" effect="dark" :content="ideaWriteShortcutKey" placement="top">
+          <note-action title="写想法" type="idea" @action-idea-written="showIdeaWrite" />
+        </el-tooltip>
+        <note-action v-if="isAi" title="知易" type="ai" :click-handler="askAI" />
+        <el-divider v-if="isShowClear" direction="vertical"></el-divider>
+        <note-action v-if="isShowClear && isShortcutKeyClose" title="清除" type="clear" :shortcut-key="clearNoteShortcutKey"
                      @action-clear="clearSigns" />
+        <el-tooltip v-if="isShowClear && !isShortcutKeyClose" class="item" effect="dark" :content="`清除样式（${clearNoteShortcutKey}）`" placement="top">
+          <note-action title="清除" type="clear" :shortcut-key="clearNoteShortcutKey"
+                       @action-clear="clearSigns" />
+        </el-tooltip>
       </div>
-    </el-popover>
-    <idea-write :visible="ideaWriteVisible" @idea-written="writeIdea" />
-    <idea-list :visible="ideaListVisible" :notes="currentIdeas" @ideas-show-close="closeIdeas" @idea-edit="editIdea" @idea-delete="deleteIdea" />
+    </el-dialog>
+    <idea-write :visible="ideaWriteVisible" :title="selectedText" @idea-written="writeIdea" />
+    <idea-list :visible="ideaListVisible" :notes="currentIdeas"
+               :idea-list-width="ideaListWidth" :idea-list-top="ideaListTop"
+               :idea-list-left="ideaListLeft" :idea-list-body-max-height="ideaListBodyMaxHeight"
+               @ideas-show-close="closeIdeas" @idea-edit="editIdea" @idea-delete="deleteIdea" />
   </div>
 </template>
 
@@ -36,7 +60,8 @@ import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import NoteAction from './note-action';
 import IdeaList from './idea-list';
-import IdeaWrite from './idea-write.vue';
+import IdeaWrite from './idea-write';
+import {formatDate} from '/src/utils/date-util';
 
 export default {
   name: 'ElNoteAdder',
@@ -86,36 +111,19 @@ export default {
     },
     backgroundColors: {
       type: Array,
-      default: () =>[
-        {name: '红', val: '#FF00FF'},
-        {name: '蓝', val: '#87CEFA'},
-        {name: '绿', val: '#90EE90'},
-        {name: '黄', val: '#FFFFE0'},
-        {name: '紫', val: '#EE82EE'},
-        {name: '粉', val: '#FFB6C1'}
-      ]
+      default: () =>['rgba(242,172,38,0.3)', 'rgba(73,183,247,0.3)', 'rgba(87,111,234,0.3)', 'rgba(245,97,213,0.3)', 'rgba(255,81,81,0.3)', 'rgba(139,210,83,0.3)']
     },
     wavyLineColors: {
       type: Array,
-      default: () => [
-        {name: '红', val: '#FF0000'},
-        {name: '蓝', val: '#0000FF'},
-        {name: '绿', val: '#008000'},
-        {name: '黄', val: '#FFFF00'},
-        {name: '紫', val: '#800080'},
-        {name: '粉', val: '#FF1493'}
-      ]
+      default: () => ['#F2AC26', '#49B7F7', '#576FEA', '#F561D5', '#FF5151', '#8BD253']
     },
     straightLineColors: {
       type: Array,
-      default: () => [
-        {name: '红', val: '#FF0000'},
-        {name: '蓝', val: '#0000FF'},
-        {name: '绿', val: '#008000'},
-        {name: '黄', val: '#FFFF00'},
-        {name: '紫', val: '#800080'},
-        {name: '粉', val: '#FF1493'}
-      ]
+      default: () => ['#F2AC26', '#49B7F7', '#576FEA', '#F561D5', '#FF5151', '#8BD253']
+    },
+    isShortcutKeyClose: {
+      type: Boolean,
+      default: true
     },
     copyTextShortcutKey: {
       type: String,
@@ -137,9 +145,29 @@ export default {
       type: String,
       default: 'Ctrl+Shift+J'
     },
-    dottedLineColor: {
+    ideaWriteShortcutKey: {
       type: String,
-      default: '#A9A9A9'
+      default: 'Ctrl+Shift+K'
+    },
+    ideaLineColor: {
+      type: String,
+      default: '#666'
+    },
+    ideaListWidth: {
+      type: Number,
+      default: 800
+    },
+    ideaListTop: {
+      type: Number,
+      default: 0
+    },
+    ideaListLeft: {
+      type: Number,
+      default: 0
+    },
+    ideaListBodyMaxHeight: {
+      type: Number,
+      default: 500
     }
   },
   data() {
@@ -152,38 +180,32 @@ export default {
       ideas: [],
       currentIdeas: [],
       ideaWriteVisible: false,
-      ideaListVisible: false
+      ideaListVisible: false,
+      selectedText: '',
+      selectedBgColors: [],
+      selectedWavyLineColors: [],
+      selectedStraightLineColors: [],
+      left: 0,
+      top: 0
     };
   },
   created() {
-    console.log('note-adder: created');
-    console.log('note-adder: this.ranges: ', this.ranges);
-    console.log('note-adder: this.signs: ', this.signs);
     this.signs = _.cloneDeep(this.ranges);
     this.ideas = _.cloneDeep(this.notes);
-    // this.initNotes();
   },
   computed: {
     hasPopup() {
       return this.ideaWriteVisible || this.ideaListVisible;
+    },
+    isShowClear() {
+      if (this.isClear) {
+        return this.selectedBgColors.length + this.selectedWavyLineColors.length + this.selectedStraightLineColors.length > 0;
+      } else {
+        return false;
+      }
     }
   },
   watch: {
-    // hasPopup(val) {
-    //   setTimeout(() => {
-    //     if (val) {
-    //       console.log('ideaListVisible: ', val);
-    //       console.log('ideaListVisible: ', new Date());
-    //       document.removeEventListener('mouseup', this.handleSelection);
-    //       document.removeEventListener('mousedown', this.handleClick);
-    //     } else {
-    //       console.log('ideaListVisible: ', val);
-    //       console.log('ideaListVisible: ', new Date());
-    //       document.addEventListener('mouseup', this.handleSelection);
-    //       document.addEventListener('mousedown', this.handleClick);
-    //     }
-    //   }, 500);
-    // },
     hasPopup(newVal, oldVal) {
       if (newVal !== oldVal) {
         this.lastPopupChangeTime = Date.now();
@@ -191,7 +213,6 @@ export default {
     },
     ranges: {
       handler(val) {
-        console.log('134  note-adder: ranges: ', val);
         this.signs = val;
       },
       deep: true
@@ -204,25 +225,27 @@ export default {
     }
   },
   mounted() {
-    console.log('为何要触发！！！！！~~~~~~~~');
     this.$nextTick(() => {
       this.initNotes();
     });
     document.addEventListener('mouseup', this.handleSelection);
-    document.addEventListener('mousedown', this.handleClick);
-    document.addEventListener('keydown', this.handleKeyDown);
+    document.addEventListener('mousedown', this.getMousePosition);
+    if (!this.isShortcutKeyClose) {
+      document.addEventListener('keydown', this.handleKeyDown);
+    }
   },
   beforeDestroy() {
     document.removeEventListener('mouseup', this.handleSelection);
-    document.removeEventListener('mousedown', this.handleClick);
-    document.removeEventListener('keydown', this.handleKeyDown);
+    document.removeEventListener('mousedown', this.getMousePosition);
+    if (!this.isShortcutKeyClose) {
+      document.removeEventListener('keydown', this.handleKeyDown);
+    }
   },
   methods: {
     handleKeyDown(event) {
       if (this.textNodes && this.textNodes.length === 0) {
         return;
       }
-      console.log('note-adder: event: ', event);
       const pressedKeys = [];
       // 检查是否同时按下了 Ctrl 键（在大多数浏览器中，Meta 键也适用于 Mac 的 Command 键）
       const isCtrlPressed = event.ctrlKey || event.metaKey;
@@ -241,31 +264,19 @@ export default {
       if (key) {
         pressedKeys.push(key.toUpperCase());
       }
-      console.log('note-adder: handleKeyDown: pressedKeys: ', pressedKeys);
       const copyTextShortcutKeys = this.copyTextShortcutKey.split('+').map(key => key && key.toUpperCase());
-      console.log('note-adder: handleKeyDown: copyTextShortcutKeys: ', copyTextShortcutKeys);
       const backgroundShortcutKeys = this.backgroundShortcutKey.split('+').map(key => key && key.toUpperCase());
-      console.log('note-adder: handleKeyDown: backgroundShortcutKeys: ', backgroundShortcutKeys);
       const wavyLineShortcutKeys = this.wavyLineShortcutKey.split('+').map(key => key && key.toUpperCase());
-      console.log('note-adder: handleKeyDown: wavyLineShortcutKeys: ', wavyLineShortcutKeys);
       const straightLineShortcutKeys = this.straightLineShortcutKey.split('+').map(key => key && key.toUpperCase());
-      console.log('note-adder: handleKeyDown: straightLineShortcutKeys: ', straightLineShortcutKeys);
       const clearNoteShortcutKeys = this.clearNoteShortcutKey.split('+').map(key => key && key.toUpperCase());
-      console.log('note-adder: handleKeyDown: clearNoteShortcutKeys: ', clearNoteShortcutKeys);
-      if (pressedKeys.length === 1 && (pressedKeys[0] === copyTextShortcutKeys[0] ||
-          pressedKeys[0] === backgroundShortcutKeys[0] ||
-          pressedKeys[0] === wavyLineShortcutKeys[0] ||
-          pressedKeys[0] === straightLineShortcutKeys[0] ||
-          pressedKeys[0] === clearNoteShortcutKeys[0])) {
-        event.preventDefault(); // 阻止默认行为，如页面保存
-        console.log('note-adder: handleKeyDown: ', pressedKeys[0]);
-      }
+      const ideaWriteShortcutKeys = this.ideaWriteShortcutKey.split('+').map(key => key && key.toUpperCase());
       if (pressedKeys.length > 1) {
         let isCopy = copyTextShortcutKeys.length === pressedKeys.length;
         let isBg = backgroundShortcutKeys.length === pressedKeys.length;
         let isWavy = wavyLineShortcutKeys.length === pressedKeys.length;
         let isStraight = straightLineShortcutKeys.length === pressedKeys.length;
         let isClear = clearNoteShortcutKeys.length === pressedKeys.length;
+        let isIdeaWrite = ideaWriteShortcutKeys.length === pressedKeys.length;
         for (let i = 0; i < copyTextShortcutKeys.length; i++) {
           if (isCopy && !pressedKeys.includes(copyTextShortcutKeys[i])) {
             isCopy = false;
@@ -291,90 +302,157 @@ export default {
             isClear = false;
           }
         }
+        for (let i = 0; i < ideaWriteShortcutKeys.length; i++) {
+          if (isIdeaWrite && !pressedKeys.includes(ideaWriteShortcutKeys[i])) {
+            isIdeaWrite = false;
+          }
+        }
         if (isCopy) {
           event.preventDefault();
           this.copyText();
         } else if (isBg) {
           event.preventDefault();
-          this.mark(3, this.backgroundLastUsed.val);
+          this.mark(3, this.backgroundLastUsed);
+          this.visible = false;
         } else if (isWavy) {
           event.preventDefault();
-          this.mark(1, this.wavyLineLastUsed.val);
+          this.mark(1, this.wavyLineLastUsed);
+          this.visible = false;
         } else if (isStraight) {
           event.preventDefault();
-          this.mark(2, this.straightLineLastUsed.val);
+          this.mark(2, this.straightLineLastUsed);
+          this.visible = false;
         } else if (isClear) {
           event.preventDefault();
           this.mark(0);
+          this.visible = false;
+        } else if (isIdeaWrite) {
+          event.preventDefault();
+          this.visible = false;
+          this.ideaWriteVisible = true;
         }
       }
     },
-    handleSelection() {
+    getMousePosition(event) {
+      this.mousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      };
+    },
+    handleSelection(event) {
       if (!this.visible && !this.hasPopup) {
         requestAnimationFrame(() => {
           const selection = window.getSelection();
           if (selection && selection.type) {
-            console.log('63  selection.type: ', selection.type);
-            console.log('handleSelection: ', new Date());
-            // console.log('63  selection.ranges: ', JSON.stringify(selection.ranges));
             if (selection.type === 'Range' && selection.rangeCount > 0 && !selection.isCollapsed &&
                 selection.toString().length > 0 && selection.toString().trim() !== '' &&
                 selection.toString() !== '{}') {
-              // console.log('63  selection.getRangeAt(0): ', selection.getRangeAt(0));
               this.range = selection.getRangeAt(0).cloneRange();
               // 校验信息
               const {commonAncestorContainer, startContainer, endContainer} = selection.getRangeAt(0);
               // 获取选中文本的所有直接父标签信息
               let textNodes = [];
-              // 起始和结束节点，或者在范围内的节点，如果是文本节点则收集起来
-              // let range = document.createRange();
-              // range.setStart(startContainer, 0);
-              // range.setEnd(endContainer, 0);
               this.walk(commonAncestorContainer, (node) => {
                 if (node === startContainer || node === endContainer || this.range.isPointInRange(node, 0)) {
                   const nodeType = node.nodeType;
-                  console.log('143  nodeType: ', nodeType);
                   if (nodeType === 3) {
                     textNodes.push(node);
                   }
                 }
               });
-              this.textNodes = textNodes;
-              // console.log('66  textNodes: ', JSON.stringify(textNodes));
+              this.checkTextNodes(textNodes);
+              if (this.textNodes.length === 0) return;
               this.selectedText = selection.toString();
-              // console.log('66  note-adder: ', selectedText);
+              const { selectedBgColors, selectedWavyLineColors, selectedStraightLineColors } = this.getSelectedColors();
+              let allSelectedColors = selectedBgColors;
+              selectedWavyLineColors.forEach(color => {
+                if (!allSelectedColors.includes(color)) {
+                  allSelectedColors.push(color);
+                }
+              });
+              selectedStraightLineColors.forEach(color => {
+                if (!allSelectedColors.includes(color)) {
+                  allSelectedColors.push(color);
+                }
+              });
+              this.selectedBgColors = allSelectedColors;
+              this.selectedWavyLineColors = allSelectedColors;
+              this.selectedStraightLineColors = allSelectedColors;
+              const browserViewWidth = window.innerWidth;
+              const noteActionObj = document.getElementById('noteActionPopover');
+              const {left, top, width, right} = selection.getRangeAt(0).getBoundingClientRect();
+              if (this.mousePosition && this.mousePosition.x && this.mousePosition.y && left <= this.mousePosition.x <= right && Math.abs(this.mousePosition.y - top) <= 10) {
+                this.left = Math.round(this.mousePosition.x - 485 / 2);
+                this.top = Math.round(top);
+              } else {
+                this.left = Math.round(left + (width - 485) / 2);
+                this.top = Math.round(top);
+              }
+              if (this.top >= 68) {
+                this.top = this.top - 68;
+              } else {
+                this.top = 0;
+              }
+              if (this.left < 0) {
+                this.left = 0;
+              } else if (this.left + 485 - 6 > browserViewWidth) {
+                if (browserViewWidth - 485 - 6 >= 0) {
+                  this.left = Math.round(browserViewWidth - 485 - 6);
+                } else {
+                  this.left = 0;
+                }
+              }
+              noteActionObj.style.left = `${this.left}px`;
+              noteActionObj.style.top = `${this.top}px`;
               // 当选区非空时，处理选中文本
-              console.log('163  this.visible: ', this.visible);
               this.visible = true;
-              console.log('165  this.visible: ', this.visible);
             } else if (selection.type === 'Caret') {
+              event.preventDefault();
               if (this.lastPopupChangeTime && Date.now() - this.lastPopupChangeTime < 500) {
                 return;
               }
-              // 处理鼠标点击选中文本
-              console.log('note-adder: handleSelection: Caret');
-              console.log('handleSelection: ', new Date());
-              const { startContainer } = selection.getRangeAt(0);
-              if (startContainer && startContainer.parentNode && startContainer.parentNode.className) {
-                const className = startContainer.parentNode.className;
+              if (event.target && event.target.attributes &&
+                  event.target.attributes.getNamedItem('class') &&
+                  event.target.attributes.getNamedItem('class').value) {
+                const className = event.target.attributes.getNamedItem('class').value;
+                if (!className.includes('idea-id-')) return;
                 let classList = className.split(' ');
                 let ideaIds = [];
                 classList.forEach((className) => {
                   if (className.startsWith('idea-id-')) {
                     const ideaId = className.replace('idea-id-', '');
-                    this.signs.forEach((sign) => {
-                      sign.marks.forEach((mark) => {
+                    let signIds = [];
+                    let matchMarks = [];
+                    for (let i = 0; i < this.signs.length; i++) {
+                      for (let j = 0; j < this.signs[i].marks.length; j++) {
+                        const mark = this.signs[i].marks[j];
                         if (mark.ideaIds && mark.ideaIds.includes(ideaId)) {
+                          if (!signIds.includes(this.signs[i].id)) {
+                            signIds.push(this.signs[i].id);
+                          }
+                          matchMarks.push(mark);
+                        }
+                      }
+                    }
+                    for (let i = 0; i < this.signs.length; i++) {
+                      const sign = this.signs[i];
+                      for (let j = 0; j < sign.marks.length; j++) {
+                        const mark = sign.marks[j];
+                        if (mark.ideaIds && (mark.ideaIds.includes(ideaId) ||
+                            (signIds.length && matchMarks.length &&
+                                ((signIds[0] === sign.id && matchMarks[0].start === mark.end) ||
+                                    (signIds[signIds.length - 1] === sign.id && matchMarks[matchMarks.length - 1].end === mark.start))))) {
                           mark.ideaIds.forEach((id) => {
                             if (!ideaIds.includes(id)) {
                               ideaIds.push(id);
                             }
                           });
                         }
-                      });
-                    });
+                      }
+                    }
                   }
                 });
+                ideaIds = this.recursionCollectIdeaIds(ideaIds);
                 let ideas = [];
                 ideaIds.forEach((ideaId) => {
                   const findIdea = this.ideas.find((idea) => idea.id === ideaId);
@@ -383,15 +461,33 @@ export default {
                   }
                 });
                 if (ideas.length > 0) {
-                  console.log('note-adder: handleSelection: ideas: ', ideas);
+                  ideas.sort((a, b) => a.updateTime > b.updateTime ? 1 : -1);
                   this.currentIdeas = ideas;
+                  if (event.target.parentNode.nodeName === 'A' && event.target.parentNode.getAttribute('href') !== '') {
+                    return;
+                  }
                   this.ideaListVisible = true;
                 }
               }
             }
           }
         });
+      } else if (this.visible) {
+        const actionPopover = document.getElementById('noteActionPopover').children[0].children[1];
+        if (this.isElementInside(actionPopover, event.target)) {
+          event.preventDefault();
+        }
       }
+    },
+    isElementInside(elementA, elementB) {
+      const rectA = elementA.getBoundingClientRect();
+      const rectB = elementB.getBoundingClientRect();
+
+      return (rectA.left <= rectB.left &&
+          rectB.right <= rectA.right &&
+          rectA.top <= rectB.top &&
+          rectB.bottom <= rectA.bottom
+      );
     },
     walk(node, callback = () => {
     }) {
@@ -402,41 +498,78 @@ export default {
         }
       }
     },
-    handleClick(event) {
-      if (this.visible) {
-        // 判断点击事件是否发生在Popover外部
-        const popoverEl = this.$refs.noteActionPopover.$el;
-        if (!popoverEl.contains(event.target)) {
-          // 点击的是Popover外部，关闭Popover
-          this.visible = false;
+    recursionCollectIdeaIds(currentIdeaIds, deep = 0) {
+      if (!currentIdeaIds || currentIdeaIds.length === 0) {
+        return currentIdeaIds;
+      }
+      let resultIdeaIds = [...currentIdeaIds];
+      currentIdeaIds.forEach((ideaId) => {
+        let signIds = [];
+        let matchMarks = [];
+        for (let i = 0; i < this.signs.length; i++) {
+          for (let j = 0; j < this.signs[i].marks.length; j++) {
+            const mark = this.signs[i].marks[j];
+            if (mark.ideaIds && mark.ideaIds.includes(ideaId)) {
+              if (!signIds.includes(this.signs[i].id)) {
+                signIds.push(this.signs[i].id);
+              }
+              matchMarks.push(mark);
+            }
+          }
         }
+        for (let i = 0; i < this.signs.length; i++) {
+          const sign = this.signs[i];
+          for (let j = 0; j < sign.marks.length; j++) {
+            const mark = sign.marks[j];
+            if (mark.ideaIds && (mark.ideaIds.includes(ideaId) ||
+                (signIds.length && matchMarks.length &&
+                    ((signIds[0] === sign.id && matchMarks[0].start === mark.end) ||
+                        (signIds[signIds.length - 1] === sign.id && matchMarks[matchMarks.length - 1].end === mark.start))))) {
+              mark.ideaIds.forEach((id) => {
+                if (!resultIdeaIds.includes(id)) {
+                  resultIdeaIds.push(id);
+                }
+              });
+            }
+          }
+        }
+      });
+      if (currentIdeaIds.length === resultIdeaIds.length) {
+        return resultIdeaIds;
+      } else {
+        return this.recursionCollectIdeaIds(resultIdeaIds, deep + 1);
       }
     },
+    askAI() {
+      this.$message({
+        message: '该功能尚未开发，敬请期待！',
+        type: 'warning'
+      });
+    },
     copyText() {
-      // 获取文本内容
-      const selection = window.getSelection();
       // 将文本内容写入剪贴板
-      navigator.clipboard.writeText(selection.toString());
+      navigator.clipboard.writeText(this.selectedText);
       // 弹出提示信息
       this.$message({
-        showClose: true,
         message: '复制成功',
         type: 'success'
       });
+      this.deselectText();
       // 关闭Popover
       this.visible = false;
     },
     clearSigns() {
       this.mark(0, null, []);
       this.visible = false;
+      this.deselectText();
     },
     showIdeaWrite() {
-      console.log('note-adder: showIdeaWrite');
       this.ideaWriteVisible = true;
       this.visible = false;
+      this.deselectText();
     },
     writeIdea(content) {
-      console.log('note-adder: writeIdea: ', content);
+      this.deselectText();
       this.ideaWriteVisible = false;
       if (content) {
         const ideaId = uuidv4();
@@ -445,40 +578,41 @@ export default {
           id: ideaId,
           title: this.selectedText,
           content: content,
-          creatTime: new Date().toLocaleString()
+          updateTime: formatDate(new Date(), 'yyyy-MM-dd HH:mm:ss')
         });
       }
     },
     selectLastUsedColor(type, color) {
-      console.log('note-adder: selectLastUsedColor: ', type, color);
       this.selectColor({type, color});
     },
     selectColor(actionColor) {
-      document.addEventListener('mousedown', this.handleClick);
-      console.log('note-adder: selectColor: ', JSON.stringify(actionColor));
-      const {type, color} = actionColor;
-      if (color) {
-        if (type === 'background') {
-          this.backgroundLastUsed = color;
-          this.mark(3, color.val);
-        } else if (type === 'wavy') {
-          this.wavyLineLastUsed = color;
-          this.mark(1, color.val);
-        } else if (type === 'straight') {
-          this.straightLineLastUsed = color;
-          this.mark(2, color.val);
-        }
-      } else {
-        if (type === 'background') {
-          this.mark(3);
-        } else if (type === 'wavy') {
-          this.mark(1);
-        } else if (type === 'straight') {
-          this.mark(2);
+      const {type, color, actionClose, isColorSelect} = actionColor;
+      if (isColorSelect) {
+        if (color) {
+          if (type === 'background') {
+            this.backgroundLastUsed = color;
+            this.mark(3, color);
+          } else if (type === 'wavy') {
+            this.wavyLineLastUsed = color;
+            this.mark(1, color);
+          } else if (type === 'straight') {
+            this.straightLineLastUsed = color;
+            this.mark(2, color);
+          }
+        } else {
+          if (type === 'background') {
+            this.mark(3);
+          } else if (type === 'wavy') {
+            this.mark(1);
+          } else if (type === 'straight') {
+            this.mark(2);
+          }
         }
       }
-      this.visible = false;
-      this.deselectText();
+      if (actionClose) {
+        this.visible = false;
+        this.deselectText();
+      }
     },
     deselectText() {
       if (window.getSelection) { // 标准浏览器
@@ -499,10 +633,8 @@ export default {
       return offset;
     },
     getPrevSiblingOffset(node) {
-      console.log('302  getPrevSiblingOffset: ', node);
       let offset = 0;
       let prevNode = node.previousSibling;
-      console.log('305  getPrevSiblingOffset--prevNode: ', prevNode);
       while (prevNode) {
         offset +=
             prevNode.nodeType === 3 ? prevNode.nodeValue.length : prevNode.textContent.length;
@@ -511,15 +643,11 @@ export default {
       return offset;
     },
     mark(type, color, ideaIds) {
-      console.log('259  note-adder: mark: ', type, color);
       this.handleTextNodes(type, color, ideaIds);
     },
     initNotes() {
-      console.log('263  note-adder: initNotes: ', this.signs);
       this.signs.forEach((sign) => {
         const node = document.getElementById(`note_adder_${sign.id}`);
-        console.log('334  note-adder: initNotes: node: ', node);
-        console.log('334  note-adder: initNotes: node.childNodes[0]: ', node.childNodes[0]);
         if (node && sign.marks.length > 0) {
           let fragment = document.createDocumentFragment();
           for (let i = 0; i < sign.marks.length; i++) {
@@ -558,14 +686,114 @@ export default {
               endNode && fragment.appendChild(endNode);
             }
           }
-          console.log('364  note-adder: fragment: ', fragment);
           // 替换文本节点
           node.replaceChild(fragment, node.childNodes[0]);
         }
       });
     },
-    handleTextNodes(type, color, ideaIds) {
+    getSelectedColors() {
+      let selectedBgColors = [];
+      let selectedWavyLineColors = [];
+      let selectedStraightLineColors = [];
+      // 遍历文本节点
+      this.textNodes.forEach((node) => {
+        if (node.parentNode && node.parentNode.attributes.style) {
+          const style = node.parentNode.attributes.style.value;
+          const styleArr = style ? style.split(';').filter(item => item.trim() !== '') : [];
+          styleArr.forEach((item) => {
+            if (item.startsWith('--mark-bg-color')) {
+              let color = item.replace('--mark-bg-color:', '').trim();
+              if (color.startsWith('rgba')) {
+                const colors = color.substring(5, color.length - 1).split(',');
+                color = this.rgbToHex(colors[0], colors[1], colors[2]);
+              } else if (color.startsWith('rgb')) {
+                const colors = color.substring(4, color.length - 1).split(',');
+                color = this.rgbToHex(colors[0], colors[1], colors[2]);
+              }
+              if (!selectedBgColors.includes(color)) {
+                selectedBgColors.push(color);
+              }
+            } else if (item.startsWith('--wavy-line-color')) {
+              let color = item.replace('--wavy-line-color:', '').trim();
+              if (color.startsWith('rgba')) {
+                const colors = color.substring(5, color.length - 1).split(',');
+                color = this.rgbToHex(colors[0], colors[1], colors[2]);
+              } else if (color.startsWith('rgb')) {
+                const colors = color.substring(4, color.length - 1).split(',');
+                color = this.rgbToHex(colors[0], colors[1], colors[2]);
+              }
+              if (!selectedWavyLineColors.includes(color)) {
+                selectedWavyLineColors.push(color);
+              }
+            } else if (item.startsWith('--straight-line-color')) {
+              let color = item.replace('--straight-line-color:', '').trim();
+              if (color.startsWith('rgba')) {
+                const colors = color.substring(5, color.length - 1).split(',');
+                color = this.rgbToHex(colors[0], colors[1], colors[2]);
+              } else if (color.startsWith('rgb')) {
+                const colors = color.substring(4, color.length - 1).split(',');
+                color = this.rgbToHex(colors[0], colors[1], colors[2]);
+              }
+              if (!selectedStraightLineColors.includes(color)) {
+                selectedStraightLineColors.push(color);
+              }
+            }
+          });
+        }
+      });
+      return {
+        selectedBgColors,
+        selectedWavyLineColors,
+        selectedStraightLineColors
+      };
+    },
+    rgbToHex(r, g, b) {
+      r = Number(r);
+      g = Number(g);
+      b = Number(b);
+      return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+    },
+    hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    },
+    checkTextNodes(allTextNodes) {
+      let textNodes = [];
       let textNodeIds = [];
+      // 遍历文本节点
+      allTextNodes.forEach((node) => {
+        let parentNodeId = '';
+        if (node.parentNode && node.parentNode.attributes && node.parentNode.attributes.id) {
+          parentNodeId = node.parentNode.attributes.id.value;
+        }
+        let parentNodeClassName = '';
+        if (node.parentNode && node.parentNode.className) {
+          parentNodeClassName = node.parentNode.className;
+        }
+        if (parentNodeId.startsWith('note_adder_') || parentNodeClassName.includes('el-note-action')) {
+          // 收集操作文本的id
+          if (parentNodeId.startsWith('note_adder_') && textNodeIds.indexOf(parentNodeId) === -1) {
+            textNodeIds.push(parentNodeId);
+          } else {
+            if (node.parentNode.parentNode && node.parentNode.parentNode.attributes &&
+                node.parentNode.parentNode.attributes.id) {
+              const parentParentNodeId = node.parentNode.parentNode.attributes.id.value;
+              if (parentParentNodeId.startsWith('note_adder_') && textNodeIds.indexOf(parentParentNodeId) === -1) {
+                textNodeIds.push(parentParentNodeId);
+              }
+            }
+          }
+          textNodes.push(node);
+        }
+      });
+      this.textNodes = textNodes;
+      this.textNodeIds = textNodeIds;
+    },
+    handleTextNodes(type, color, ideaIds) {
       // 遍历文本节点
       this.textNodes.forEach((node) => {
         // 范围的首尾元素需要判断一下偏移量，用来截取字符
@@ -578,63 +806,28 @@ export default {
           endOffset = this.range.endOffset;
         }
         let parentNodeId = '';
-        console.log('*************node: ', node);
-        console.log('*************node.parentNode: ', node.parentNode);
         if (node.parentNode && node.parentNode.attributes && node.parentNode.attributes.id) {
           parentNodeId = node.parentNode.attributes.id.value;
         }
-        let parentNodeClassName = '';
-        if (node.parentNode && node.parentNode.className) {
-          parentNodeClassName = node.parentNode.className;
-        }
-        console.log('*************parentNodeId: ', parentNodeId);
-        console.log('341  node.parentNode: ', node.parentNode);
-        console.log('342  node.parentNode.parentNode: ', node.parentNode.parentNode);
-        if (parentNodeId.startsWith('note_adder_') || parentNodeClassName.includes('el-note-action')) {
-          // 收集操作文本的id
-          // console.log('282  replaceTextNode!!!!!!!!!!!!!!!!');
-          // console.log('282  parentNodeId: ', parentNodeId);
-          // console.log('282  parentNodeClassName: ', parentNodeClassName);
-          // console.log('282  node.parentNode: ', node.parentNode);
-          // console.log('282  node.parentNode.parentNode: ', node.parentNode.parentNode);
-          if (parentNodeId.startsWith('note_adder_') && textNodeIds.indexOf(parentNodeId) === -1) {
-            textNodeIds.push(parentNodeId);
-          } else {
-            // const parentParentNode = node.closest('* > *');
-            // console.log('353@@@@@@@@@  parentParentNode: ', parentParentNode);
-            if (node.parentNode.parentNode && node.parentNode.parentNode.attributes &&
-                node.parentNode.parentNode.attributes.id) {
-              const parentParentNodeId = node.parentNode.parentNode.attributes.id.value;
-              if (parentParentNodeId.startsWith('note_adder_') && textNodeIds.indexOf(parentParentNodeId) === -1) {
-                textNodeIds.push(parentParentNodeId);
-              }
-            }
-          }
-          // 替换该文本节点
-          this.replaceTextNode(node, parentNodeId, startOffset, endOffset, type, color, ideaIds);
-        }
+        // 替换该文本节点
+        this.replaceTextNode(node, parentNodeId, startOffset, endOffset, type, color, ideaIds);
       });
 
       // 更新需要保存的数据
       let updateSigns = [];
       let ids = [];
-      console.log('356  textNodeIds: ', textNodeIds);
-      textNodeIds.forEach((nodeId) => {
+      this.textNodeIds.forEach((nodeId) => {
         let updateSign = {};
         const id = nodeId.replace('note_adder_', '').trim();
         ids.push(id);
         updateSign.id = id;
         const signedNode = document.getElementById(nodeId);
-        console.log('364  signedNode: ', signedNode);
         let updateMarks = [];
-        console.log('366  signedNode.childNodes: ', signedNode.childNodes);
         this.walk(signedNode, (node) => {
-          console.log('366  node: ', node);
           let mark = {};
           let isSigned = false;
           if (node.attributes && node.attributes.style) {
             const style = node.attributes.style.value;
-            console.log('355  style: ', style);
             const styleList = style.split(';').filter(item => item.trim() !== '');
             styleList.forEach((item) => {
               if (item.startsWith('--wavy-line-color')) {
@@ -653,9 +846,7 @@ export default {
           }
           let ideaIds = [];
           if (node.className && node.className.includes('idea-id-')) {
-            console.log('394  node.className: ', node.className);
             const classList = node.className.split(' ').filter(item => item.trim() !== '');
-            console.log('396  classList: ', classList);
             classList.forEach((className) => {
               if (className.startsWith('idea-id-')) {
                 ideaIds.push(className.replace('idea-id-', '').trim());
@@ -667,9 +858,6 @@ export default {
             mark.ideaIds = ideaIds;
             const currentOffset = this.getPrevSiblingOffset(node);
             mark.start = currentOffset;
-            console.log('404  currentOffset: ', currentOffset);
-            console.log('404  node.textContent: ', node.textContent);
-            console.log('404  node.textContent.length: ', node.textContent.length);
             mark.end = currentOffset + node.textContent.length;
             updateMarks.push(mark);
           }
@@ -679,14 +867,11 @@ export default {
           updateSigns.push(updateSign);
         }
       });
-      console.log('408  ids: ', ids);
       this.signs = this.signs.filter(sign => !ids.includes(sign.id));
-      console.log('409  updateSigns: ', JSON.stringify(updateSigns));
       this.signs.push(...updateSigns);
       if (this.signs.length > 0) {
         this.signs.sort((a, b) => a.id - b.id);
       }
-      console.log('409  this.signs: ', JSON.stringify(this.signs));
     },
     replaceTextNode(node, parentNodeId, startOffset, endOffset, type, color, ideaIds) {
       // 创建一个文档片段用来替换文本节点
@@ -768,11 +953,11 @@ export default {
       let index = -1;
       switch (type) {
         case 0: // 清除
-          index = classList.indexOf('el-note-action__dashed-line');
+          index = classList.indexOf('el-note-action__idea-line');
           if (index !== -1) {
             let newClassList = [];
             classList.forEach((item) => {
-              if (item === 'el-note-action__dashed-line' || !item.startsWith('el-note-action')) {
+              if (item === 'el-note-action__idea-line' || !item.startsWith('el-note-action')) {
                 newClassList.push(item);
               }
             });
@@ -836,10 +1021,9 @@ export default {
           return classList.join(' ');
         case 4: // 写想法
           if (ideaIds && ideaIds.length > 0) {
-            console.log('640  ideaIds: ', ideaIds);
-            index = classList.indexOf('el-note-action__dashed-line');
+            index = classList.indexOf('el-note-action__idea-line');
             if (index === -1) {
-              classList.push('el-note-action__dashed-line');
+              classList.push('el-note-action__idea-line');
             }
             ideaIds.forEach((ideaId) => {
               if (!classList.includes(`idea-id-${ideaId}`)) {
@@ -854,12 +1038,11 @@ export default {
     },
     getStyle(type, color, style) {
       const styleArr = style ? style.split(';').filter(item => item.trim() !== '') : [];
-      console.log('523  getStyle: ', styleArr);
       let newStyle = '';
       switch (type) {
         case 0: // 清除
-          if (style && style.includes('--dotted-line-color')) {
-            newStyle += `--dotted-line-color: ${this.dottedLineColor};`;
+          if (style && style.includes('--idea-line-color')) {
+            newStyle += `--idea-line-color: ${this.ideaLineColor};`;
           }
           return newStyle;
         case 1: // 波浪线
@@ -911,13 +1094,13 @@ export default {
           }
           return newStyle;
         case 4: // 写想法
-          if (style && style.includes('--dotted-line-color')) {
+          if (style && style.includes('--idea-line-color')) {
             newStyle = style;
           } else {
             for (const item of styleArr) {
               newStyle += item.trim() + ';';
             }
-            newStyle += `--dotted-line-color: ${this.dottedLineColor};`;
+            newStyle += `--idea-line-color: ${this.ideaLineColor};`;
           }
           return newStyle;
         default:
@@ -925,22 +1108,24 @@ export default {
       }
     },
     closeIdeas(updateNotes) {
+      this.deselectText();
       this.ideaListVisible = false;
       this.currentIdeas = [];
-      console.log('note-adder: closeIdeas: ', updateNotes);
     },
     editIdea(id, content) {
-      console.log('note-adder: editIdea: ', id, content);
       for (let i = 0; i < this.ideas.length; i++) {
         if (this.ideas[i].id === id) {
           this.ideas[i].content = content;
+          // this.ideas[i].updateTime = formatDate(new Date(), 'yyyy-MM-dd HH:mm:ss');
           break;
         }
       }
-      console.log('note-adder: editIdea: this.ideas: ', JSON.stringify(this.ideas));
     },
-    deleteIdea(ideaId) {
-      console.log('note-adder: deleteIdea: ', ideaId);
+    deleteIdea(params) {
+      const {ideaId, isClose} = params;
+      if (isClose) {
+        this.closeIdeas();
+      }
       // 1. 删除想法
       this.ideas = this.ideas.filter(idea => idea.id !== ideaId);
       // 2. 获取包含该想法的文本id，并删除与文本关联的该笔记id
@@ -968,28 +1153,23 @@ export default {
           newSigns.push(sign);
         }
       }
-      console.log('note-adder: deleteIdea: this.signs: ', JSON.stringify(this.signs));
       this.signs = newSigns;
-      console.log('note-adder: deleteIdea: newSigns: ', JSON.stringify(newSigns));
       // 3. 遍历文本节点，删除该笔记id
       signIds.forEach(index => {
         const signedNode = document.getElementById(`note_adder_${index}`);
         this.walk(signedNode, (node) => {
           if (node.className) {
             let className = node.className;
-            console.log('587  className: ', className);
             if (className.includes('idea-id-' + ideaId)) {
-              const count = className.split('idea-id-' + ideaId).length - 1;
+              const count = className.split('idea-id-').length - 1;
               if (count === 1) {
                 className = className.replace('idea-id-' + ideaId, '').trim();
-                className = className.replace('el-note-action__dashed-line', '').trim();
+                className = className.replace('el-note-action__idea-line', '').trim();
                 if (className.includes('el-note-action__')) {
                   let newNode = node.cloneNode(true);
                   newNode.className = className;
                   node.parentNode.replaceChild(newNode, node);
                 } else {
-                  console.log('599  !!!!!!!!node.textContent: ', node.textContent);
-                  console.log('599  !!!!!!!!node.parentNode: ', node.parentNode);
                   let textNode = document.createTextNode(node.textContent);
                   node.parentNode.replaceChild(textNode, node);
                 }
@@ -1002,17 +1182,86 @@ export default {
           }
         });
       });
+    },
+    checkIfIdeaExist(noteId) {
+      const id = /^\d+$/.test(noteId) ? `note_adder_${noteId}` : noteId;
+      let result = false;
+      this.walk(document.getElementById(id), (node) => {
+        if (node.className) {
+          let className = node.className;
+          if (className.includes('idea-id-')) {
+            result = true;
+          }
+        }
+      });
+      return result;
+    },
+    directShowIdeaList(noteId) {
+      const id = /^\d+$/.test(noteId) ? `note_adder_${noteId}` : noteId;
+      this.walk(document.getElementById(id), (node) => {
+        if (node.className) {
+          let className = node.className;
+          if (className.includes('idea-id-')) {
+            let classList = className.split(' ');
+            let ideaIds = [];
+            classList.forEach((className) => {
+              if (className.startsWith('idea-id-')) {
+                const ideaId = className.replace('idea-id-', '');
+                let signIds = [];
+                let matchMarks = [];
+                for (let i = 0; i < this.signs.length; i++) {
+                  for (let j = 0; j < this.signs[i].marks.length; j++) {
+                    const mark = this.signs[i].marks[j];
+                    if (mark.ideaIds && mark.ideaIds.includes(ideaId)) {
+                      if (!signIds.includes(this.signs[i].id)) {
+                        signIds.push(this.signs[i].id);
+                      }
+                      matchMarks.push(mark);
+                    }
+                  }
+                }
+                for (let i = 0; i < this.signs.length; i++) {
+                  const sign = this.signs[i];
+                  for (let j = 0; j < sign.marks.length; j++) {
+                    const mark = sign.marks[j];
+                    if (mark.ideaIds && (mark.ideaIds.includes(ideaId) ||
+                        (signIds.length && matchMarks.length &&
+                            ((signIds[0] === sign.id && matchMarks[0].start === mark.end) ||
+                                (signIds[signIds.length - 1] === sign.id && matchMarks[matchMarks.length - 1].end === mark.start))))) {
+                      mark.ideaIds.forEach((id) => {
+                        if (!ideaIds.includes(id)) {
+                          ideaIds.push(id);
+                        }
+                      });
+                    }
+                  }
+                }
+              }
+            });
+            ideaIds = this.recursionCollectIdeaIds(ideaIds);
+            let ideas = [];
+            ideaIds.forEach((ideaId) => {
+              const findIdea = this.ideas.find((idea) => idea.id === ideaId);
+              if (findIdea) {
+                ideas.push(findIdea);
+              }
+            });
+            if (ideas.length > 0) {
+              ideas.sort((a, b) => a.updateTime > b.updateTime ? 1 : -1);
+              this.currentIdeas = ideas;
+              this.visible = false;
+              this.ideaWriteVisible = false;
+              this.ideaListVisible = true;
+            } else {
+              this.$message({
+                message: '该处文本没有笔记',
+                type: 'info'
+              });
+            }
+          }
+        }
+      });
     }
   }
 };
 </script>
-
-<style scoped lang="scss">
-.note-action-popover {
-  position: relative;
-  user-select: none;
-}
-.note-actions {
-  display: flex;
-}
-</style>
